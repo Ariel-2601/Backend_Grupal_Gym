@@ -1,11 +1,12 @@
-import { useState } from "react";
-import './App.css'
+import React from 'react'
 
-const App =  () => {
-  return(
-    <>
-    <h1>Componente principal</h1>
-    </>
+const App = () => {
+  return (
+    <div className="container mt-5">
+      <h1>Backend Grupal Gym - Componente Principal</h1>
+      <p>Proyecto configurado correctamente con Vite + React + Supabase + Bootstrap</p>
+    </div>
   )
 }
+
 export default App;
