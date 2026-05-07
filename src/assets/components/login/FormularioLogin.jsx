@@ -1,73 +1,57 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../database/supabaseconfig';
+import React from 'react';
+import { Form, Button, Card, Alert } from "react-bootstrap";
 
-const FormularioLogin = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      localStorage.setItem('usuario-supabase', JSON.stringify(data.user));
-      navigate('/');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const FormularioLogin = ({ 
+  usuario, 
+  contrasena, 
+  error, 
+  setUsuario, 
+  setContrasena, 
+  iniciarSesion 
+}) => {
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
-        <div className="col-md-5">
-          <div className="card shadow-lg">
-            <div className="card-body p-5">
-              <div className="text-center mb-4">
-                <h2>GymLiveFitness</h2>
-                <p className="text-muted">LiveFitness - Sistema de Gestión Inteligente</p>
-              </div>
+        <div className="col-md-6">
+          <Card className="p-4 shadow-lg">
+            <Card.Body>
+              <h3 className="text-center mb-4 color-texto-marca">Iniciar Sesión</h3>
 
-              {error && <div className="alert alert-danger">{error}</div>}
+              {error && <Alert variant="danger">{error}</Alert>}
 
-              <form onSubmit={handleLogin}>
-                <div className="mb-3">
-                  <label className="form-label">Correo Electrónico</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ejemplo@gymlivefitness.com"
+              <Form>
+                <Form.Group className="mb-3" controlId="usuario">
+                  <Form.Label>Usuario / Correo</Form.Label>
+                  <Form.Control 
+                    type="text" 
+                    placeholder="Ingresa tu usuario" 
+                    value={usuario}
+                    onChange={(e) => setUsuario(e.target.value)}
                     required
                   />
-                </div>
-                <div className="mb-4">
-                  <label className="form-label">Contraseña</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="contrasena">
+                  <Form.Label>Contraseña</Form.Label>
+                  <Form.Control 
+                    type="password" 
+                    placeholder="Ingresa tu contraseña" 
+                    value={contrasena}
+                    onChange={(e) => setContrasena(e.target.value)}
                     required
                   />
-                </div>
-                <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-                  {loading ? "Ingresando..." : "Iniciar Sesión"}
-                </button>
-              </form>
-            </div>
-          </div>
+                </Form.Group>
+
+                <Button 
+                  variant="primary" 
+                  className="w-100" 
+                  onClick={iniciarSesion}
+                >
+                  Iniciar Sesión
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
         </div>
       </div>
     </div>
