@@ -1,47 +1,48 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable react/prop-types */
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const ModalRegistroProducto = ({
+const ModalEdicionMembresia = ({
   show,
   handleClose,
-  registrarProducto,
+  membresia,
+  actualizarMembresia,
 }) => {
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
-  const [stock, setStock] = useState("");
+  const [duracion, setDuracion] = useState("");
+
+  useEffect(() => {
+    if (membresia) {
+      setNombre(membresia.nombre || "");
+      setPrecio(membresia.precio || "");
+      setDuracion(membresia.duracion || "");
+    }
+  }, [membresia]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    registrarProducto({
+    actualizarMembresia({
+      ...membresia,
       nombre,
       precio,
-      stock,
+      duracion,
     });
 
-    limpiarFormulario();
     handleClose();
-  };
-
-  const limpiarFormulario = () => {
-    setNombre("");
-    setPrecio("");
-    setStock("");
   };
 
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Form onSubmit={handleSubmit}>
         <Modal.Header closeButton>
-          <Modal.Title>Registrar Producto</Modal.Title>
+          <Modal.Title>Editar Membresía</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           <Form.Group className="mb-3">
-            <Form.Label>Nombre del Producto</Form.Label>
+            <Form.Label>Nombre de la Membresía</Form.Label>
 
             <Form.Control
               type="text"
@@ -65,13 +66,13 @@ const ModalRegistroProducto = ({
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Stock</Form.Label>
+            <Form.Label>Duración</Form.Label>
 
             <Form.Control
-              type="number"
-              placeholder="Ingrese el stock"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              type="text"
+              placeholder="Ejemplo: 1 mes"
+              value={duracion}
+              onChange={(e) => setDuracion(e.target.value)}
               required
             />
           </Form.Group>
@@ -82,8 +83,8 @@ const ModalRegistroProducto = ({
             Cancelar
           </Button>
 
-          <Button variant="success" type="submit">
-            Registrar
+          <Button variant="primary" type="submit">
+            Guardar Cambios
           </Button>
         </Modal.Footer>
       </Form>
@@ -91,4 +92,4 @@ const ModalRegistroProducto = ({
   );
 };
 
-export default ModalRegistroProducto;
+export default ModalEdicionMembresia;

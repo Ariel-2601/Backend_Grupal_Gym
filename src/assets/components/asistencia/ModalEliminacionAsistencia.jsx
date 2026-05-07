@@ -3,26 +3,26 @@
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 
-const ModalEliminacionProducto = ({
+const ModalEliminacionAsistencias = ({
   show,
   handleClose,
-  producto,
-  eliminarProducto,
+  asistencia,
+  eliminarAsistencia,
 }) => {
   const handleEliminar = () => {
-    eliminarProducto(producto.id);
+    eliminarAsistencia(asistencia.id);
     handleClose();
   };
 
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Eliminar Producto</Modal.Title>
+        <Modal.Title>Eliminar Asistencia</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        ¿Estás seguro de eliminar el producto{" "}
-        <strong>{producto?.nombre}</strong>?
+        ¿Estás seguro de eliminar la asistencia de{" "}
+        <strong>{asistencia?.cliente}</strong>?
       </Modal.Body>
 
       <Modal.Footer>
@@ -38,4 +38,4 @@ const ModalEliminacionProducto = ({
   );
 };
 
-export default ModalEliminacionProducto;
+export default ModalEliminacionAsistencias;

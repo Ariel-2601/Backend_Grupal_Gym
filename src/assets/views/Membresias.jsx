@@ -10,15 +10,15 @@ import {
 
 import { supabase } from "../database/supabaseconfig";
 
-import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
-import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
-import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
+import ModalRegistroMembresia from "../components/membresias/ModalRegistroMembresia";
+import ModalEdicionMembresia from "../components/membresias/ModalEdicionMembresia";
+import ModalEliminacionMembresia from "../components/membresias/ModalEliminacionMembresia";
 
-import TablaProductos from "../components/productos/TablaProductos";
+import TablaMembresias from "../components/membresias/TablaMembresia";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
-const Productos = () => {
+const Membresias = () => {
 
     // =========================
     // Estados
@@ -30,9 +30,9 @@ const Productos = () => {
 
     const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
 
-    const [productos, setProductos] = useState([]);
+    const [membresias, setMembresias] = useState([]);
 
-    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [membresiaSeleccionada, setMembresiaSeleccionada] = useState(null);
 
     const [cargando, setCargando] = useState(false);
 
@@ -47,36 +47,36 @@ const Productos = () => {
     });
 
     // =========================
-    // Cargar productos
+    // Cargar membresías
     // =========================
 
-    const cargarProductos = async () => {
+    const cargarMembresias = async () => {
 
         try {
 
             setCargando(true);
 
             const { data, error } = await supabase
-                .from("productos")
+                .from("membresias")
                 .select("*")
-                .order("id_producto", {
+                .order("id_membresia", {
                     ascending: true
                 });
 
             if (error) throw error;
 
-            setProductos(data || []);
+            setMembresias(data || []);
 
         } catch (error) {
 
             console.log(
-                "Error al cargar productos:",
+                "Error al cargar membresías:",
                 error
             );
 
             setToast({
                 mostrar: true,
-                mensaje: "Error al cargar productos.",
+                mensaje: "Error al cargar membresías.",
                 tipo: "danger"
             });
 
@@ -87,14 +87,14 @@ const Productos = () => {
     };
 
     // =========================
-    // Agregar producto
+    // Agregar membresía
     // =========================
 
-    const agregarProducto = async (nuevoProducto) => {
+    const agregarMembresia = async (nuevaMembresia) => {
 
         try {
 
-            if (!nuevoProducto.nombre_producto.trim()) {
+            if (!nuevaMembresia.nombre.trim()) {
 
                 setToast({
                     mostrar: true,
@@ -106,26 +106,22 @@ const Productos = () => {
             }
 
             const { error } = await supabase
-                .from("productos")
+                .from("membresias")
                 .insert([
                     {
-                        nombre_producto:
-                            nuevoProducto.nombre_producto,
-
-                        categoria_producto:
-                            nuevoProducto.categoria_producto,
+                        nombre: nuevaMembresia.nombre,
 
                         descripcion:
-                            nuevoProducto.descripcion,
+                            nuevaMembresia.descripcion,
 
                         precio:
-                            nuevoProducto.precio,
+                            nuevaMembresia.precio,
 
-                        stock:
-                            nuevoProducto.stock,
+                        duracion_dias:
+                            nuevaMembresia.duracion_dias,
 
                         estado:
-                            nuevoProducto.estado
+                            nuevaMembresia.estado
                     }
                 ]);
 
@@ -134,13 +130,13 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Producto registrado correctamente.",
+                    "Membresía registrada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModal(false);
 
-            await cargarProductos();
+            await cargarMembresias();
 
         } catch (error) {
 
@@ -149,46 +145,43 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Error al registrar producto.",
+                    "Error al registrar membresía.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Actualizar producto
+    // Actualizar membresía
     // =========================
 
-    const actualizarProducto = async (
-        productoActualizado
+    const actualizarMembresia = async (
+        membresiaActualizada
     ) => {
 
         try {
 
             const { error } = await supabase
-                .from("productos")
+                .from("membresias")
                 .update({
-                    nombre_producto:
-                        productoActualizado.nombre_producto,
-
-                    categoria_producto:
-                        productoActualizado.categoria_producto,
+                    nombre:
+                        membresiaActualizada.nombre,
 
                     descripcion:
-                        productoActualizado.descripcion,
+                        membresiaActualizada.descripcion,
 
                     precio:
-                        productoActualizado.precio,
+                        membresiaActualizada.precio,
 
-                    stock:
-                        productoActualizado.stock,
+                    duracion_dias:
+                        membresiaActualizada.duracion_dias,
 
                     estado:
-                        productoActualizado.estado
+                        membresiaActualizada.estado
                 })
                 .eq(
-                    "id_producto",
-                    productoActualizado.id_producto
+                    "id_membresia",
+                    membresiaActualizada.id_membresia
                 );
 
             if (error) throw error;
@@ -196,13 +189,13 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Producto actualizado correctamente.",
+                    "Membresía actualizada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEdicion(false);
 
-            await cargarProductos();
+            await cargarMembresias();
 
         } catch (error) {
 
@@ -211,37 +204,37 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Error al actualizar producto.",
+                    "Error al actualizar membresía.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Eliminar producto
+    // Eliminar membresía
     // =========================
 
-    const eliminarProducto = async (id) => {
+    const eliminarMembresia = async (id) => {
 
         try {
 
             const { error } = await supabase
-                .from("productos")
+                .from("membresias")
                 .delete()
-                .eq("id_producto", id);
+                .eq("id_membresia", id);
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Producto eliminado correctamente.",
+                    "Membresía eliminada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEliminacion(false);
 
-            await cargarProductos();
+            await cargarMembresias();
 
         } catch (error) {
 
@@ -250,7 +243,7 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Error al eliminar producto.",
+                    "Error al eliminar membresía.",
                 tipo: "danger"
             });
         }
@@ -261,7 +254,7 @@ const Productos = () => {
     // =========================
 
     useEffect(() => {
-        cargarProductos();
+        cargarMembresias();
     }, []);
 
     // =========================
@@ -278,8 +271,8 @@ const Productos = () => {
                 <Col xs={9}>
 
                     <h3 className="mb-0">
-                        <i className="bi bi-box-seam-fill me-2"></i>
-                        Productos Fitness
+                        <i className="bi bi-credit-card-2-front-fill me-2"></i>
+                        Membresías
                     </h3>
 
                 </Col>
@@ -294,7 +287,7 @@ const Productos = () => {
                         <i className="bi bi-plus-lg"></i>
 
                         <span className="ms-2 d-none d-sm-inline">
-                            Nuevo Producto
+                            Nueva Membresía
                         </span>
                     </Button>
 
@@ -305,22 +298,22 @@ const Productos = () => {
             <hr />
 
             {/* Tabla */}
-            <TablaProductos
-                productos={productos}
+            <TablaMembresias
+                membresias={membresias}
                 cargando={cargando}
-                recargar={cargarProductos}
+                recargar={cargarMembresias}
 
-                onEditar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
+                onEditar={(membresia) => {
+                    setMembresiaSeleccionada(
+                        membresia
                     );
 
                     setMostrarModalEdicion(true);
                 }}
 
-                onEliminar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
+                onEliminar={(membresia) => {
+                    setMembresiaSeleccionada(
+                        membresia
                     );
 
                     setMostrarModalEliminacion(true);
@@ -328,31 +321,31 @@ const Productos = () => {
             />
 
             {/* Modal Registro */}
-            <ModalRegistroProducto
+            <ModalRegistroMembresia
                 mostrar={mostrarModal}
                 setMostrar={setMostrarModal}
-                agregarProducto={agregarProducto}
+                agregarMembresia={agregarMembresia}
             />
 
             {/* Modal Edición */}
-            <ModalEdicionProducto
+            <ModalEdicionMembresia
                 mostrar={mostrarModalEdicion}
                 setMostrar={setMostrarModalEdicion}
-                producto={productoSeleccionado}
-                actualizarProducto={
-                    actualizarProducto
+                membresia={membresiaSeleccionada}
+                actualizarMembresia={
+                    actualizarMembresia
                 }
             />
 
             {/* Modal Eliminación */}
-            <ModalEliminacionProducto
+            <ModalEliminacionMembresia
                 mostrar={mostrarModalEliminacion}
                 setMostrar={
                     setMostrarModalEliminacion
                 }
-                producto={productoSeleccionado}
-                eliminarProducto={
-                    eliminarProducto
+                membresia={membresiaSeleccionada}
+                eliminarMembresia={
+                    eliminarMembresia
                 }
             />
 
@@ -373,4 +366,4 @@ const Productos = () => {
     );
 };
 
-export default Productos;
+export default Membresias;

@@ -10,15 +10,15 @@ import {
 
 import { supabase } from "../database/supabaseconfig";
 
-import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
-import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
-import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
+import ModalRegistroAsistencia from "../components/asistencia/ModalRegistroAsistencias";
+import ModalEdicionAsistencia from "../components/asistencia/ModalEdicionAsistencias";
+import ModalEliminacionAsistencia from "../components/asistencia/ModalEliminacionAsistencia";
 
-import TablaProductos from "../components/productos/TablaProductos";
+import TablaAsistencias from "../components/asistencia/TablaAsistencia";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
-const Productos = () => {
+const Asistencias = () => {
 
     // =========================
     // Estados
@@ -30,9 +30,9 @@ const Productos = () => {
 
     const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
 
-    const [productos, setProductos] = useState([]);
+    const [asistencias, setAsistencias] = useState([]);
 
-    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [asistenciaSeleccionada, setAsistenciaSeleccionada] = useState(null);
 
     const [cargando, setCargando] = useState(false);
 
@@ -47,36 +47,39 @@ const Productos = () => {
     });
 
     // =========================
-    // Cargar productos
+    // Cargar asistencias
     // =========================
 
-    const cargarProductos = async () => {
+    const cargarAsistencias = async () => {
 
         try {
 
             setCargando(true);
 
             const { data, error } = await supabase
-                .from("productos")
-                .select("*")
-                .order("id_producto", {
+                .from("asistencias")
+                .select(`
+                    *,
+                    clientes (
+                        nombres,
+                        apellidos
+                    )
+                `)
+                .order("id_asistencia", {
                     ascending: true
                 });
 
             if (error) throw error;
 
-            setProductos(data || []);
+            setAsistencias(data || []);
 
         } catch (error) {
 
-            console.log(
-                "Error al cargar productos:",
-                error
-            );
+            console.log("Error al cargar asistencias:", error);
 
             setToast({
                 mostrar: true,
-                mensaje: "Error al cargar productos.",
+                mensaje: "Error al cargar asistencias.",
                 tipo: "danger"
             });
 
@@ -87,18 +90,18 @@ const Productos = () => {
     };
 
     // =========================
-    // Agregar producto
+    // Registrar asistencia
     // =========================
 
-    const agregarProducto = async (nuevoProducto) => {
+    const agregarAsistencia = async (nuevaAsistencia) => {
 
         try {
 
-            if (!nuevoProducto.nombre_producto.trim()) {
+            if (!nuevaAsistencia.id_cliente) {
 
                 setToast({
                     mostrar: true,
-                    mensaje: "Debe ingresar un nombre.",
+                    mensaje: "Debe seleccionar un cliente.",
                     tipo: "warning"
                 });
 
@@ -106,26 +109,17 @@ const Productos = () => {
             }
 
             const { error } = await supabase
-                .from("productos")
+                .from("asistencias")
                 .insert([
                     {
-                        nombre_producto:
-                            nuevoProducto.nombre_producto,
-
-                        categoria_producto:
-                            nuevoProducto.categoria_producto,
-
-                        descripcion:
-                            nuevoProducto.descripcion,
-
-                        precio:
-                            nuevoProducto.precio,
-
-                        stock:
-                            nuevoProducto.stock,
-
-                        estado:
-                            nuevoProducto.estado
+                        id_cliente: nuevaAsistencia.id_cliente,
+                        fecha: nuevaAsistencia.fecha,
+                        hora_entrada:
+                            nuevaAsistencia.hora_entrada,
+                        hora_salida:
+                            nuevaAsistencia.hora_salida,
+                        observacion:
+                            nuevaAsistencia.observacion
                     }
                 ]);
 
@@ -133,14 +127,13 @@ const Productos = () => {
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Producto registrado correctamente.",
+                mensaje: "Asistencia registrada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModal(false);
 
-            await cargarProductos();
+            await cargarAsistencias();
 
         } catch (error) {
 
@@ -148,61 +141,54 @@ const Productos = () => {
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al registrar producto.",
+                mensaje: "Error al registrar asistencia.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Actualizar producto
+    // Actualizar asistencia
     // =========================
 
-    const actualizarProducto = async (
-        productoActualizado
-    ) => {
+    const actualizarAsistencia = async (asistenciaActualizada) => {
 
         try {
 
             const { error } = await supabase
-                .from("productos")
+                .from("asistencias")
                 .update({
-                    nombre_producto:
-                        productoActualizado.nombre_producto,
+                    id_cliente:
+                        asistenciaActualizada.id_cliente,
 
-                    categoria_producto:
-                        productoActualizado.categoria_producto,
+                    fecha:
+                        asistenciaActualizada.fecha,
 
-                    descripcion:
-                        productoActualizado.descripcion,
+                    hora_entrada:
+                        asistenciaActualizada.hora_entrada,
 
-                    precio:
-                        productoActualizado.precio,
+                    hora_salida:
+                        asistenciaActualizada.hora_salida,
 
-                    stock:
-                        productoActualizado.stock,
-
-                    estado:
-                        productoActualizado.estado
+                    observacion:
+                        asistenciaActualizada.observacion
                 })
                 .eq(
-                    "id_producto",
-                    productoActualizado.id_producto
+                    "id_asistencia",
+                    asistenciaActualizada.id_asistencia
                 );
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Producto actualizado correctamente.",
+                mensaje: "Asistencia actualizada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEdicion(false);
 
-            await cargarProductos();
+            await cargarAsistencias();
 
         } catch (error) {
 
@@ -210,38 +196,36 @@ const Productos = () => {
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al actualizar producto.",
+                mensaje: "Error al actualizar asistencia.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Eliminar producto
+    // Eliminar asistencia
     // =========================
 
-    const eliminarProducto = async (id) => {
+    const eliminarAsistencia = async (id) => {
 
         try {
 
             const { error } = await supabase
-                .from("productos")
+                .from("asistencias")
                 .delete()
-                .eq("id_producto", id);
+                .eq("id_asistencia", id);
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Producto eliminado correctamente.",
+                mensaje: "Asistencia eliminada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEliminacion(false);
 
-            await cargarProductos();
+            await cargarAsistencias();
 
         } catch (error) {
 
@@ -249,8 +233,7 @@ const Productos = () => {
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al eliminar producto.",
+                mensaje: "Error al eliminar asistencia.",
                 tipo: "danger"
             });
         }
@@ -261,7 +244,7 @@ const Productos = () => {
     // =========================
 
     useEffect(() => {
-        cargarProductos();
+        cargarAsistencias();
     }, []);
 
     // =========================
@@ -278,8 +261,8 @@ const Productos = () => {
                 <Col xs={9}>
 
                     <h3 className="mb-0">
-                        <i className="bi bi-box-seam-fill me-2"></i>
-                        Productos Fitness
+                        <i className="bi bi-calendar-check-fill me-2"></i>
+                        Asistencias
                     </h3>
 
                 </Col>
@@ -287,14 +270,12 @@ const Productos = () => {
                 <Col xs={3} className="text-end">
 
                     <Button
-                        onClick={() =>
-                            setMostrarModal(true)
-                        }
+                        onClick={() => setMostrarModal(true)}
                     >
                         <i className="bi bi-plus-lg"></i>
 
                         <span className="ms-2 d-none d-sm-inline">
-                            Nuevo Producto
+                            Nueva Asistencia
                         </span>
                     </Button>
 
@@ -305,55 +286,43 @@ const Productos = () => {
             <hr />
 
             {/* Tabla */}
-            <TablaProductos
-                productos={productos}
+            <TablaAsistencias
+                asistencias={asistencias}
                 cargando={cargando}
-                recargar={cargarProductos}
+                recargar={cargarAsistencias}
 
-                onEditar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
-                    );
-
+                onEditar={(asistencia) => {
+                    setAsistenciaSeleccionada(asistencia);
                     setMostrarModalEdicion(true);
                 }}
 
-                onEliminar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
-                    );
-
+                onEliminar={(asistencia) => {
+                    setAsistenciaSeleccionada(asistencia);
                     setMostrarModalEliminacion(true);
                 }}
             />
 
             {/* Modal Registro */}
-            <ModalRegistroProducto
+            <ModalRegistroAsistencia
                 mostrar={mostrarModal}
                 setMostrar={setMostrarModal}
-                agregarProducto={agregarProducto}
+                agregarAsistencia={agregarAsistencia}
             />
 
             {/* Modal Edición */}
-            <ModalEdicionProducto
+            <ModalEdicionAsistencia
                 mostrar={mostrarModalEdicion}
                 setMostrar={setMostrarModalEdicion}
-                producto={productoSeleccionado}
-                actualizarProducto={
-                    actualizarProducto
-                }
+                asistencia={asistenciaSeleccionada}
+                actualizarAsistencia={actualizarAsistencia}
             />
 
             {/* Modal Eliminación */}
-            <ModalEliminacionProducto
+            <ModalEliminacionAsistencia
                 mostrar={mostrarModalEliminacion}
-                setMostrar={
-                    setMostrarModalEliminacion
-                }
-                producto={productoSeleccionado}
-                eliminarProducto={
-                    eliminarProducto
-                }
+                setMostrar={setMostrarModalEliminacion}
+                asistencia={asistenciaSeleccionada}
+                eliminarAsistencia={eliminarAsistencia}
             />
 
             {/* Toast */}
@@ -373,4 +342,4 @@ const Productos = () => {
     );
 };
 
-export default Productos;
+export default Asistencias;

@@ -10,15 +10,15 @@ import {
 
 import { supabase } from "../database/supabaseconfig";
 
-import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
-import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
-import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
+import ModalRegistroCliente from "../components/clientes/ModalRegistroClientes";
+import ModalEdicionClientes from "../components/clientes/ModalEdicionClientes";
+import ModalEliminacionCliente from "../components/clientes/ModalEliminacionClientes";
 
-import TablaProductos from "../components/productos/TablaProductos";
+import TablaClientes from "../components/clientes/TablaClientes";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
-const Productos = () => {
+const Clientes = () => {
 
     // =========================
     // Estados
@@ -30,9 +30,9 @@ const Productos = () => {
 
     const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
 
-    const [productos, setProductos] = useState([]);
+    const [clientes, setClientes] = useState([]);
 
-    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
     const [cargando, setCargando] = useState(false);
 
@@ -47,36 +47,31 @@ const Productos = () => {
     });
 
     // =========================
-    // Cargar productos
+    // Cargar clientes
     // =========================
 
-    const cargarProductos = async () => {
+    const cargarClientes = async () => {
 
         try {
 
             setCargando(true);
 
             const { data, error } = await supabase
-                .from("productos")
+                .from("clientes")
                 .select("*")
-                .order("id_producto", {
-                    ascending: true
-                });
+                .order("id_cliente", { ascending: true });
 
             if (error) throw error;
 
-            setProductos(data || []);
+            setClientes(data || []);
 
         } catch (error) {
 
-            console.log(
-                "Error al cargar productos:",
-                error
-            );
+            console.log("Error al cargar clientes:", error);
 
             setToast({
                 mostrar: true,
-                mensaje: "Error al cargar productos.",
+                mensaje: "Error al cargar clientes.",
                 tipo: "danger"
             });
 
@@ -87,18 +82,18 @@ const Productos = () => {
     };
 
     // =========================
-    // Agregar producto
+    // Agregar cliente
     // =========================
 
-    const agregarProducto = async (nuevoProducto) => {
+    const agregarCliente = async (nuevoCliente) => {
 
         try {
 
-            if (!nuevoProducto.nombre_producto.trim()) {
+            if (!nuevoCliente.nombres.trim()) {
 
                 setToast({
                     mostrar: true,
-                    mensaje: "Debe ingresar un nombre.",
+                    mensaje: "Debe ingresar el nombre.",
                     tipo: "warning"
                 });
 
@@ -106,26 +101,15 @@ const Productos = () => {
             }
 
             const { error } = await supabase
-                .from("productos")
+                .from("clientes")
                 .insert([
                     {
-                        nombre_producto:
-                            nuevoProducto.nombre_producto,
-
-                        categoria_producto:
-                            nuevoProducto.categoria_producto,
-
-                        descripcion:
-                            nuevoProducto.descripcion,
-
-                        precio:
-                            nuevoProducto.precio,
-
-                        stock:
-                            nuevoProducto.stock,
-
-                        estado:
-                            nuevoProducto.estado
+                        nombres: nuevoCliente.nombres,
+                        apellidos: nuevoCliente.apellidos,
+                        edad: nuevoCliente.edad,
+                        telefono: nuevoCliente.telefono,
+                        correo: nuevoCliente.correo,
+                        estado: nuevoCliente.estado
                     }
                 ]);
 
@@ -133,14 +117,13 @@ const Productos = () => {
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Producto registrado correctamente.",
+                mensaje: "Cliente registrado correctamente.",
                 tipo: "success"
             });
 
             setMostrarModal(false);
 
-            await cargarProductos();
+            await cargarClientes();
 
         } catch (error) {
 
@@ -148,61 +131,46 @@ const Productos = () => {
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al registrar producto.",
+                mensaje: "Error al registrar cliente.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Actualizar producto
+    // Actualizar cliente
     // =========================
 
-    const actualizarProducto = async (
-        productoActualizado
-    ) => {
+    const actualizarCliente = async (clienteActualizado) => {
 
         try {
 
             const { error } = await supabase
-                .from("productos")
+                .from("clientes")
                 .update({
-                    nombre_producto:
-                        productoActualizado.nombre_producto,
-
-                    categoria_producto:
-                        productoActualizado.categoria_producto,
-
-                    descripcion:
-                        productoActualizado.descripcion,
-
-                    precio:
-                        productoActualizado.precio,
-
-                    stock:
-                        productoActualizado.stock,
-
-                    estado:
-                        productoActualizado.estado
+                    nombres: clienteActualizado.nombres,
+                    apellidos: clienteActualizado.apellidos,
+                    edad: clienteActualizado.edad,
+                    telefono: clienteActualizado.telefono,
+                    correo: clienteActualizado.correo,
+                    estado: clienteActualizado.estado
                 })
                 .eq(
-                    "id_producto",
-                    productoActualizado.id_producto
+                    "id_cliente",
+                    clienteActualizado.id_cliente
                 );
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Producto actualizado correctamente.",
+                mensaje: "Cliente actualizado correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEdicion(false);
 
-            await cargarProductos();
+            await cargarClientes();
 
         } catch (error) {
 
@@ -210,38 +178,36 @@ const Productos = () => {
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al actualizar producto.",
+                mensaje: "Error al actualizar cliente.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Eliminar producto
+    // Eliminar cliente
     // =========================
 
-    const eliminarProducto = async (id) => {
+    const eliminarCliente = async (id) => {
 
         try {
 
             const { error } = await supabase
-                .from("productos")
+                .from("clientes")
                 .delete()
-                .eq("id_producto", id);
+                .eq("id_cliente", id);
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Producto eliminado correctamente.",
+                mensaje: "Cliente eliminado correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEliminacion(false);
 
-            await cargarProductos();
+            await cargarClientes();
 
         } catch (error) {
 
@@ -249,8 +215,7 @@ const Productos = () => {
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al eliminar producto.",
+                mensaje: "Error al eliminar cliente.",
                 tipo: "danger"
             });
         }
@@ -261,7 +226,7 @@ const Productos = () => {
     // =========================
 
     useEffect(() => {
-        cargarProductos();
+        cargarClientes();
     }, []);
 
     // =========================
@@ -278,8 +243,8 @@ const Productos = () => {
                 <Col xs={9}>
 
                     <h3 className="mb-0">
-                        <i className="bi bi-box-seam-fill me-2"></i>
-                        Productos Fitness
+                        <i className="bi bi-people-fill me-2"></i>
+                        Clientes
                     </h3>
 
                 </Col>
@@ -287,14 +252,12 @@ const Productos = () => {
                 <Col xs={3} className="text-end">
 
                     <Button
-                        onClick={() =>
-                            setMostrarModal(true)
-                        }
+                        onClick={() => setMostrarModal(true)}
                     >
                         <i className="bi bi-plus-lg"></i>
 
                         <span className="ms-2 d-none d-sm-inline">
-                            Nuevo Producto
+                            Nuevo Cliente
                         </span>
                     </Button>
 
@@ -305,55 +268,43 @@ const Productos = () => {
             <hr />
 
             {/* Tabla */}
-            <TablaProductos
-                productos={productos}
+            <TablaClientes
+                clientes={clientes}
                 cargando={cargando}
-                recargar={cargarProductos}
+                recargar={cargarClientes}
 
-                onEditar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
-                    );
-
+                onEditar={(cliente) => {
+                    setClienteSeleccionado(cliente);
                     setMostrarModalEdicion(true);
                 }}
 
-                onEliminar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
-                    );
-
+                onEliminar={(cliente) => {
+                    setClienteSeleccionado(cliente);
                     setMostrarModalEliminacion(true);
                 }}
             />
 
             {/* Modal Registro */}
-            <ModalRegistroProducto
+            <ModalRegistroCliente
                 mostrar={mostrarModal}
                 setMostrar={setMostrarModal}
-                agregarProducto={agregarProducto}
+                agregarCliente={agregarCliente}
             />
 
             {/* Modal Edición */}
-            <ModalEdicionProducto
+            <ModalEdicionClientes
                 mostrar={mostrarModalEdicion}
                 setMostrar={setMostrarModalEdicion}
-                producto={productoSeleccionado}
-                actualizarProducto={
-                    actualizarProducto
-                }
+                cliente={clienteSeleccionado}
+                actualizarCliente={actualizarCliente}
             />
 
             {/* Modal Eliminación */}
-            <ModalEliminacionProducto
+            <ModalEliminacionCliente
                 mostrar={mostrarModalEliminacion}
-                setMostrar={
-                    setMostrarModalEliminacion
-                }
-                producto={productoSeleccionado}
-                eliminarProducto={
-                    eliminarProducto
-                }
+                setMostrar={setMostrarModalEliminacion}
+                cliente={clienteSeleccionado}
+                eliminarCliente={eliminarCliente}
             />
 
             {/* Toast */}
@@ -373,4 +324,4 @@ const Productos = () => {
     );
 };
 
-export default Productos;
+export default Clientes;

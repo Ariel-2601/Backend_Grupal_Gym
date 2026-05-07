@@ -1,53 +1,143 @@
-import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React from "react";
+
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route
+} from "react-router-dom";
 
 import Encabezado from "./assets/components/navegacion/Encabezado";
 
-import Inicio from "./assets/views/Inicio";
-import Categorias from "./assets/views/Categorias";
-import Catalogo from "./assets/views/Catalogo";
+import Dashboard from "./assets/views/Dashboard";
+import Clientes from "./assets/views/Clientes";
+import Membresias from "./assets/views/Membresias";
+import Asistencias from "./assets/views/Asistencias";
+import Ventas from "./assets/views/Ventas";
 import Productos from "./assets/views/Productos";
+
+// IMPORT ELIMINADO
+// import Catalogo from "./assets/views/Catalogo";
+
 import Login from "./assets/views/Login";
+
 import RutaProtegida from "./assets/components/rutas/RutaProtegida";
+
 import Pagina404 from "./assets/views/Pagina404";
 
 import "./App.css";
+
 const App = () => {
+
   return (
+
     <Router>
+
       <Encabezado />
 
       <main className="margen-superior-main">
+
         <Routes>
-          <Route path="/login" element={<Login />} />
 
-          <Route path="/" element={
-            <RutaProtegida>
-              <Inicio />
-            </RutaProtegida>
-          } />
+          {/* =========================
+              Login
+          ========================= */}
 
-          <Route path="/categorias" element={
-            <RutaProtegida>
-              <Categorias />
-            </RutaProtegida>
-          } />
+          <Route
+            path="/login"
+            element={<Login />}
+          />
 
-          <Route path="/catalogo" element={
-            <RutaProtegida>
-              <Catalogo />
-            </RutaProtegida>
-          } />
+          {/* =========================
+              Dashboard
+          ========================= */}
 
-          <Route path="/productos" element={
-            <RutaProtegida>
-              <Productos />
-            </RutaProtegida>
-          } />
+          <Route
+            path="/"
+            element={
+              <RutaProtegida>
+                <Dashboard />
+              </RutaProtegida>
+            }
+          />
 
-          <Route path="*" element={<Pagina404 />} />
+          {/* =========================
+              Clientes
+          ========================= */}
+
+          <Route
+            path="/clientes"
+            element={
+              <RutaProtegida>
+                <Clientes />
+              </RutaProtegida>
+            }
+          />
+
+          {/* =========================
+              Membresías
+          ========================= */}
+
+          <Route
+            path="/membresias"
+            element={
+              <RutaProtegida>
+                <Membresias />
+              </RutaProtegida>
+            }
+          />
+
+          {/* =========================
+              Asistencias
+          ========================= */}
+
+          <Route
+            path="/asistencias"
+            element={
+              <RutaProtegida>
+                <Asistencias />
+              </RutaProtegida>
+            }
+          />
+
+          {/* =========================
+              Ventas
+          ========================= */}
+
+          <Route
+            path="/ventas"
+            element={
+              <RutaProtegida>
+                <Ventas />
+              </RutaProtegida>
+            }
+          />
+
+          {/* =========================
+              Productos
+          ========================= */}
+
+          <Route
+            path="/productos"
+            element={
+              <RutaProtegida>
+                <Productos />
+              </RutaProtegida>
+            }
+          />
+
+          {/* =========================
+              Página no encontrada
+          ========================= */}
+
+          <Route
+            path="*"
+            element={<Pagina404 />}
+          />
+
         </Routes>
+
       </main>
+
     </Router>
   );
 };

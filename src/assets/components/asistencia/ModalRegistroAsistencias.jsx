@@ -4,22 +4,22 @@
 import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const ModalRegistroProducto = ({
+const ModalRegistroAsistencias = ({
   show,
   handleClose,
-  registrarProducto,
+  registrarAsistencia,
 }) => {
-  const [nombre, setNombre] = useState("");
-  const [precio, setPrecio] = useState("");
-  const [stock, setStock] = useState("");
+  const [cliente, setCliente] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [horaEntrada, setHoraEntrada] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    registrarProducto({
-      nombre,
-      precio,
-      stock,
+    registrarAsistencia({
+      cliente,
+      fecha,
+      horaEntrada,
     });
 
     limpiarFormulario();
@@ -27,51 +27,49 @@ const ModalRegistroProducto = ({
   };
 
   const limpiarFormulario = () => {
-    setNombre("");
-    setPrecio("");
-    setStock("");
+    setCliente("");
+    setFecha("");
+    setHoraEntrada("");
   };
 
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Form onSubmit={handleSubmit}>
         <Modal.Header closeButton>
-          <Modal.Title>Registrar Producto</Modal.Title>
+          <Modal.Title>Registrar Asistencia</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           <Form.Group className="mb-3">
-            <Form.Label>Nombre del Producto</Form.Label>
+            <Form.Label>Cliente</Form.Label>
 
             <Form.Control
               type="text"
-              placeholder="Ingrese el nombre"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              placeholder="Ingrese el nombre del cliente"
+              value={cliente}
+              onChange={(e) => setCliente(e.target.value)}
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Precio</Form.Label>
+            <Form.Label>Fecha</Form.Label>
 
             <Form.Control
-              type="number"
-              placeholder="Ingrese el precio"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Stock</Form.Label>
+            <Form.Label>Hora de Entrada</Form.Label>
 
             <Form.Control
-              type="number"
-              placeholder="Ingrese el stock"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              type="time"
+              value={horaEntrada}
+              onChange={(e) => setHoraEntrada(e.target.value)}
               required
             />
           </Form.Group>
@@ -91,4 +89,4 @@ const ModalRegistroProducto = ({
   );
 };
 
-export default ModalRegistroProducto;
+export default ModalRegistroAsistencias;

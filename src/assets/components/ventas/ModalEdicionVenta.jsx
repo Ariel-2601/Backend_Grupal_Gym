@@ -4,32 +4,35 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const ModalEdicionProducto = ({
+const ModalEdicionVenta = ({
   show,
   handleClose,
-  producto,
-  actualizarProducto,
+ venta,
+  actualizarVenta,
 }) => {
-  const [nombre, setNombre] = useState("");
-  const [precio, setPrecio] = useState("");
-  const [stock, setStock] = useState("");
+  const [cliente, setCliente] = useState("");
+  const [producto, setProducto] = useState("");
+  const [cantidad, setCantidad] = useState("");
+  const [total, setTotal] = useState("");
 
   useEffect(() => {
-    if (producto) {
-      setNombre(producto.nombre || "");
-      setPrecio(producto.precio || "");
-      setStock(producto.stock || "");
+    if (venta) {
+      setCliente(venta.cliente || "");
+      setProducto(venta.producto || "");
+      setCantidad(venta.cantidad || "");
+      setTotal(venta.total || "");
     }
-  }, [producto]);
+  }, [venta]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    actualizarProducto({
-      ...producto,
-      nombre,
-      precio,
-      stock,
+    actualizarVenta({
+      ...venta,
+      cliente,
+      producto,
+      cantidad,
+      total,
     });
 
     handleClose();
@@ -39,39 +42,50 @@ const ModalEdicionProducto = ({
     <Modal show={show} onHide={handleClose} centered>
       <Form onSubmit={handleSubmit}>
         <Modal.Header closeButton>
-          <Modal.Title>Editar Producto</Modal.Title>
+          <Modal.Title>Editar Venta</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
           <Form.Group className="mb-3">
-            <Form.Label>Nombre del Producto</Form.Label>
+            <Form.Label>Cliente</Form.Label>
 
             <Form.Control
               type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              value={cliente}
+              onChange={(e) => setCliente(e.target.value)}
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Precio</Form.Label>
+            <Form.Label>Producto</Form.Label>
 
             <Form.Control
-              type="number"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
+              type="text"
+              value={producto}
+              onChange={(e) => setProducto(e.target.value)}
               required
             />
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Stock</Form.Label>
+            <Form.Label>Cantidad</Form.Label>
 
             <Form.Control
               type="number"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              value={cantidad}
+              onChange={(e) => setCantidad(e.target.value)}
+              required
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Total</Form.Label>
+
+            <Form.Control
+              type="number"
+              value={total}
+              onChange={(e) => setTotal(e.target.value)}
               required
             />
           </Form.Group>
@@ -91,4 +105,4 @@ const ModalEdicionProducto = ({
   );
 };
 
-export default ModalEdicionProducto;
+export default ModalEdicionVenta;

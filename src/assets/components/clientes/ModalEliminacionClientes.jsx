@@ -1,28 +1,21 @@
-/* eslint-disable react/prop-types */
-
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 
-const ModalEliminacionProducto = ({
+const ModalEliminacionCliente = ({
   show,
   handleClose,
-  producto,
-  eliminarProducto,
+  handleEliminar,
+  cliente,
 }) => {
-  const handleEliminar = () => {
-    eliminarProducto(producto.id);
-    handleClose();
-  };
-
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Eliminar Producto</Modal.Title>
+        <Modal.Title>Eliminar Cliente</Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        ¿Estás seguro de eliminar el producto{" "}
-        <strong>{producto?.nombre}</strong>?
+        ¿Estás seguro de eliminar al cliente{" "}
+        <strong>{cliente?.nombre}</strong>?
       </Modal.Body>
 
       <Modal.Footer>
@@ -30,7 +23,10 @@ const ModalEliminacionProducto = ({
           Cancelar
         </Button>
 
-        <Button variant="danger" onClick={handleEliminar}>
+        <Button
+          variant="danger"
+          onClick={() => handleEliminar(cliente.id)}
+        >
           Eliminar
         </Button>
       </Modal.Footer>
@@ -38,4 +34,4 @@ const ModalEliminacionProducto = ({
   );
 };
 
-export default ModalEliminacionProducto;
+export default ModalEliminacionCliente;

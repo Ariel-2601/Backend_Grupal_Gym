@@ -10,15 +10,15 @@ import {
 
 import { supabase } from "../database/supabaseconfig";
 
-import ModalRegistroProducto from "../components/productos/ModalRegistroProducto";
-import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
-import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
+import ModalRegistroVenta from "../components/ventas/ModalRegistroVenta";
+import ModalEdicionVenta from "../components/ventas/ModalEdicionVenta";
+import ModalEliminacionVenta from "../components/ventas/ModalEliminacionVenta";
 
-import TablaProductos from "../components/productos/TablaProductos";
+import TablaVentas from "../components/ventas/TablaVentas";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
-const Productos = () => {
+const Ventas = () => {
 
     // =========================
     // Estados
@@ -30,9 +30,9 @@ const Productos = () => {
 
     const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
 
-    const [productos, setProductos] = useState([]);
+    const [ventas, setVentas] = useState([]);
 
-    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
 
     const [cargando, setCargando] = useState(false);
 
@@ -47,36 +47,42 @@ const Productos = () => {
     });
 
     // =========================
-    // Cargar productos
+    // Cargar ventas
     // =========================
 
-    const cargarProductos = async () => {
+    const cargarVentas = async () => {
 
         try {
 
             setCargando(true);
 
             const { data, error } = await supabase
-                .from("productos")
-                .select("*")
-                .order("id_producto", {
+                .from("ventas")
+                .select(`
+                    *,
+                    clientes (
+                        nombres,
+                        apellidos
+                    )
+                `)
+                .order("id_venta", {
                     ascending: true
                 });
 
             if (error) throw error;
 
-            setProductos(data || []);
+            setVentas(data || []);
 
         } catch (error) {
 
             console.log(
-                "Error al cargar productos:",
+                "Error al cargar ventas:",
                 error
             );
 
             setToast({
                 mostrar: true,
-                mensaje: "Error al cargar productos.",
+                mensaje: "Error al cargar ventas.",
                 tipo: "danger"
             });
 
@@ -87,18 +93,18 @@ const Productos = () => {
     };
 
     // =========================
-    // Agregar producto
+    // Registrar venta
     // =========================
 
-    const agregarProducto = async (nuevoProducto) => {
+    const agregarVenta = async (nuevaVenta) => {
 
         try {
 
-            if (!nuevoProducto.nombre_producto.trim()) {
+            if (!nuevaVenta.id_cliente) {
 
                 setToast({
                     mostrar: true,
-                    mensaje: "Debe ingresar un nombre.",
+                    mensaje: "Debe seleccionar un cliente.",
                     tipo: "warning"
                 });
 
@@ -106,26 +112,20 @@ const Productos = () => {
             }
 
             const { error } = await supabase
-                .from("productos")
+                .from("ventas")
                 .insert([
                     {
-                        nombre_producto:
-                            nuevoProducto.nombre_producto,
+                        id_cliente:
+                            nuevaVenta.id_cliente,
 
-                        categoria_producto:
-                            nuevoProducto.categoria_producto,
+                        total:
+                            nuevaVenta.total,
 
-                        descripcion:
-                            nuevoProducto.descripcion,
+                        metodo_pago:
+                            nuevaVenta.metodo_pago,
 
-                        precio:
-                            nuevoProducto.precio,
-
-                        stock:
-                            nuevoProducto.stock,
-
-                        estado:
-                            nuevoProducto.estado
+                        fecha_venta:
+                            nuevaVenta.fecha_venta
                     }
                 ]);
 
@@ -134,13 +134,13 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Producto registrado correctamente.",
+                    "Venta registrada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModal(false);
 
-            await cargarProductos();
+            await cargarVentas();
 
         } catch (error) {
 
@@ -149,46 +149,40 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Error al registrar producto.",
+                    "Error al registrar venta.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Actualizar producto
+    // Actualizar venta
     // =========================
 
-    const actualizarProducto = async (
-        productoActualizado
+    const actualizarVenta = async (
+        ventaActualizada
     ) => {
 
         try {
 
             const { error } = await supabase
-                .from("productos")
+                .from("ventas")
                 .update({
-                    nombre_producto:
-                        productoActualizado.nombre_producto,
+                    id_cliente:
+                        ventaActualizada.id_cliente,
 
-                    categoria_producto:
-                        productoActualizado.categoria_producto,
+                    total:
+                        ventaActualizada.total,
 
-                    descripcion:
-                        productoActualizado.descripcion,
+                    metodo_pago:
+                        ventaActualizada.metodo_pago,
 
-                    precio:
-                        productoActualizado.precio,
-
-                    stock:
-                        productoActualizado.stock,
-
-                    estado:
-                        productoActualizado.estado
+                    fecha_venta:
+                        ventaActualizada.fecha_venta
                 })
                 .eq(
-                    "id_producto",
-                    productoActualizado.id_producto
+                    "id_venta",
+                    ventaActualizada.id_venta
                 );
 
             if (error) throw error;
@@ -196,13 +190,13 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Producto actualizado correctamente.",
+                    "Venta actualizada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEdicion(false);
 
-            await cargarProductos();
+            await cargarVentas();
 
         } catch (error) {
 
@@ -211,37 +205,37 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Error al actualizar producto.",
+                    "Error al actualizar venta.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Eliminar producto
+    // Eliminar venta
     // =========================
 
-    const eliminarProducto = async (id) => {
+    const eliminarVenta = async (id) => {
 
         try {
 
             const { error } = await supabase
-                .from("productos")
+                .from("ventas")
                 .delete()
-                .eq("id_producto", id);
+                .eq("id_venta", id);
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Producto eliminado correctamente.",
+                    "Venta eliminada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEliminacion(false);
 
-            await cargarProductos();
+            await cargarVentas();
 
         } catch (error) {
 
@@ -250,7 +244,7 @@ const Productos = () => {
             setToast({
                 mostrar: true,
                 mensaje:
-                    "Error al eliminar producto.",
+                    "Error al eliminar venta.",
                 tipo: "danger"
             });
         }
@@ -261,7 +255,7 @@ const Productos = () => {
     // =========================
 
     useEffect(() => {
-        cargarProductos();
+        cargarVentas();
     }, []);
 
     // =========================
@@ -278,8 +272,8 @@ const Productos = () => {
                 <Col xs={9}>
 
                     <h3 className="mb-0">
-                        <i className="bi bi-box-seam-fill me-2"></i>
-                        Productos Fitness
+                        <i className="bi bi-cart-fill me-2"></i>
+                        Ventas
                     </h3>
 
                 </Col>
@@ -294,7 +288,7 @@ const Productos = () => {
                         <i className="bi bi-plus-lg"></i>
 
                         <span className="ms-2 d-none d-sm-inline">
-                            Nuevo Producto
+                            Nueva Venta
                         </span>
                     </Button>
 
@@ -305,55 +299,47 @@ const Productos = () => {
             <hr />
 
             {/* Tabla */}
-            <TablaProductos
-                productos={productos}
+            <TablaVentas
+                ventas={ventas}
                 cargando={cargando}
-                recargar={cargarProductos}
+                recargar={cargarVentas}
 
-                onEditar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
-                    );
+                onEditar={(venta) => {
+                    setVentaSeleccionada(venta);
 
                     setMostrarModalEdicion(true);
                 }}
 
-                onEliminar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
-                    );
+                onEliminar={(venta) => {
+                    setVentaSeleccionada(venta);
 
                     setMostrarModalEliminacion(true);
                 }}
             />
 
             {/* Modal Registro */}
-            <ModalRegistroProducto
+            <ModalRegistroVenta
                 mostrar={mostrarModal}
                 setMostrar={setMostrarModal}
-                agregarProducto={agregarProducto}
+                agregarVenta={agregarVenta}
             />
 
             {/* Modal Edición */}
-            <ModalEdicionProducto
+            <ModalEdicionVenta
                 mostrar={mostrarModalEdicion}
                 setMostrar={setMostrarModalEdicion}
-                producto={productoSeleccionado}
-                actualizarProducto={
-                    actualizarProducto
-                }
+                venta={ventaSeleccionada}
+                actualizarVenta={actualizarVenta}
             />
 
             {/* Modal Eliminación */}
-            <ModalEliminacionProducto
+            <ModalEliminacionVenta
                 mostrar={mostrarModalEliminacion}
                 setMostrar={
                     setMostrarModalEliminacion
                 }
-                producto={productoSeleccionado}
-                eliminarProducto={
-                    eliminarProducto
-                }
+                venta={ventaSeleccionada}
+                eliminarVenta={eliminarVenta}
             />
 
             {/* Toast */}
@@ -373,4 +359,4 @@ const Productos = () => {
     );
 };
 
-export default Productos;
+export default Ventas;
