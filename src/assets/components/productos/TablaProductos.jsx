@@ -1,64 +1,163 @@
-/* eslint-disable react/prop-types */
+import React from 'react';
 
-import React from "react";
-import { Table, Button } from "react-bootstrap";
+import {
+    Table,
+    Button,
+    Spinner
+} from 'react-bootstrap';
 
 const TablaProductos = ({
-  productos,
-  abrirModalEditar,
-  abrirModalEliminar,
+    productos,
+    cargando,
+    onEditar,
+    onEliminar
 }) => {
-  return (
-    <Table striped bordered hover responsive>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Precio</th>
-          <th>Stock</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
 
-      <tbody>
-        {productos.length > 0 ? (
-          productos.map((producto) => (
-            <tr key={producto.id}>
-              <td>{producto.id}</td>
-              <td>{producto.nombre}</td>
-              <td>${producto.precio}</td>
-              <td>{producto.stock}</td>
+    return (
+        <>
 
-              <td>
-                <Button
-                  variant="warning"
-                  size="sm"
-                  className="me-2"
-                  onClick={() => abrirModalEditar(producto)}
+            {cargando ? (
+
+                <div className="text-center py-5">
+
+                    <Spinner
+                        animation="border"
+                        variant="primary"
+                    />
+
+                    <p className="mt-3">
+                        Cargando productos...
+                    </p>
+
+                </div>
+
+            ) : (
+
+                <Table
+                    striped
+                    bordered
+                    hover
+                    responsive
+                    className="align-middle"
                 >
-                  Editar
-                </Button>
 
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => abrirModalEliminar(producto)}
-                >
-                  Eliminar
-                </Button>
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="5" className="text-center">
-              No hay productos registrados
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </Table>
-  );
+                    <thead className="table-dark">
+
+                        <tr>
+
+                            <th style={{ width: '80px' }}>
+                                ID
+                            </th>
+
+                            <th>
+                                Nombre
+                            </th>
+
+                            <th>
+                                Precio
+                            </th>
+
+                            <th>
+                                Stock
+                            </th>
+
+                            <th
+                                style={{ width: '180px' }}
+                                className="text-center"
+                            >
+                                Acciones
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {productos.length === 0 ? (
+
+                            <tr>
+
+                                <td
+                                    colSpan="5"
+                                    className="text-center py-4 text-muted"
+                                >
+                                    No hay productos registrados todavía.
+                                </td>
+
+                            </tr>
+
+                        ) : (
+
+                            productos.map((producto) => (
+
+                                <tr key={producto.id_producto}>
+
+                                    <td>
+                                        <strong>
+                                            #{producto.id_producto}
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        {producto.nombre_producto}
+                                    </td>
+
+                                    <td className="fw-bold">
+
+                                        $
+                                        {parseFloat(
+                                            producto.precio || 0
+                                        ).toFixed(2)}
+
+                                    </td>
+
+                                    <td>
+                                        {producto.stock}
+                                    </td>
+
+                                    <td className="text-center">
+
+                                        <Button
+                                            variant="warning"
+                                            size="sm"
+                                            className="me-2"
+                                            title="Editar"
+                                            onClick={() =>
+                                                onEditar(producto)
+                                            }
+                                        >
+
+                                            <i className="bi bi-pencil-square"></i>
+
+                                        </Button>
+
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            title="Eliminar"
+                                            onClick={() =>
+                                                onEliminar(producto)
+                                            }
+                                        >
+
+                                            <i className="bi bi-trash"></i>
+
+                                        </Button>
+
+                                    </td>
+
+                                </tr>
+                            ))
+                        )}
+
+                    </tbody>
+
+                </Table>
+            )}
+
+        </>
+    );
 };
 
 export default TablaProductos;

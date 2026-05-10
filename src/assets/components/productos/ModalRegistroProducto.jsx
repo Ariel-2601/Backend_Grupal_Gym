@@ -1,94 +1,229 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable react/prop-types */
+import React, { useState } from 'react';
 
-import React, { useState } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import {
+    Modal,
+    Button,
+    Form,
+    Spinner
+} from 'react-bootstrap';
 
 const ModalRegistroProducto = ({
-  show,
-  handleClose,
-  registrarProducto,
+    mostrar,
+    setMostrar,
+    agregarProducto
 }) => {
-  const [nombre, setNombre] = useState("");
-  const [precio, setPrecio] = useState("");
-  const [stock, setStock] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    registrarProducto({
-      nombre,
-      precio,
-      stock,
+    const [nuevoProducto, setNuevoProducto] = useState({
+        nombre_producto: '',
+        precio: '',
+        stock: ''
     });
 
-    limpiarFormulario();
-    handleClose();
-  };
+    const [deshabilitado, setDeshabilitado] = useState(false);
 
-  const limpiarFormulario = () => {
-    setNombre("");
-    setPrecio("");
-    setStock("");
-  };
+    // =========================
+    // Cambios inputs
+    // =========================
 
-  return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Form onSubmit={handleSubmit}>
-        <Modal.Header closeButton>
-          <Modal.Title>Registrar Producto</Modal.Title>
-        </Modal.Header>
+    const handleChange = (e) => {
 
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Nombre del Producto</Form.Label>
+        setNuevoProducto({
+            ...nuevoProducto,
+            [e.target.name]: e.target.value
+        });
+    };
 
-            <Form.Control
-              type="text"
-              placeholder="Ingrese el nombre"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-            />
-          </Form.Group>
+    // =========================
+    // Guardar producto
+    // =========================
 
-          <Form.Group className="mb-3">
-            <Form.Label>Precio</Form.Label>
+    const handleSubmit = async () => {
 
-            <Form.Control
-              type="number"
-              placeholder="Ingrese el precio"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
-              required
-            />
-          </Form.Group>
+        if (!nuevoProducto.nombre_producto.trim())
+            return;
 
-          <Form.Group className="mb-3">
-            <Form.Label>Stock</Form.Label>
+        setDeshabilitado(true);
 
-            <Form.Control
-              type="number"
-              placeholder="Ingrese el stock"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              required
-            />
-          </Form.Group>
-        </Modal.Body>
+        try {
 
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Cancelar
-          </Button>
+            await agregarProducto(
+                nuevoProducto
+            );
 
-          <Button variant="success" type="submit">
-            Registrar
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
-  );
+        } catch (error) {
+
+            console.error(
+                "Error en modal:",
+                error
+            );
+
+        } finally {
+
+            setDeshabilitado(false);
+        }
+    };
+
+    // =========================
+    // Cerrar modal
+    // =========================
+
+    const handleCerrar = () => {
+
+        setNuevoProducto({
+            nombre_producto: '',
+            precio: '',
+            stock: ''
+        });
+
+        setDeshabilitado(false);
+
+        setMostrar(false);
+    };
+
+    // =========================
+    // Render
+    // =========================
+
+    return (
+
+        <Modal
+            show={mostrar}
+            onHide={handleCerrar}
+            backdrop="static"
+            keyboard={false}
+            centered
+        >
+
+            <Modal.Header closeButton>
+
+                <Modal.Title>
+                    <i className="bi bi-plus-circle me-2"></i>
+                    Registrar Nuevo Producto
+                </Modal.Title>
+
+            </Modal.Header>
+
+            <Modal.Body>
+
+                <Form>
+
+                    <Form.Group className="mb-3">
+
+                        <Form.Label>
+                            Nombre del Producto
+                            <span className="text-danger">
+                                *
+                            </span>
+                        </Form.Label>
+
+                        <Form.Control
+                            type="text"
+                            name="nombre_producto"
+                            placeholder="Ej: Proteína Whey 2kg"
+                            value={
+                                nuevoProducto.nombre_producto
+                            }
+                            onChange={handleChange}
+                            disabled={deshabilitado}
+                        />
+
+                    </Form.Group>
+
+                    <div className="row">
+
+                        <div className="col-md-6">
+
+                            <Form.Group className="mb-3">
+
+                                <Form.Label>
+                                    Precio ($)
+                                </Form.Label>
+
+                                <Form.Control
+                                    type="number"
+                                    step="0.01"
+                                    name="precio"
+                                    placeholder="0.00"
+                                    value={
+                                        nuevoProducto.precio
+                                    }
+                                    onChange={handleChange}
+                                    disabled={deshabilitado}
+                                />
+
+                            </Form.Group>
+
+                        </div>
+
+                        <div className="col-md-6">
+
+                            <Form.Group className="mb-3">
+
+                                <Form.Label>
+                                    Stock
+                                </Form.Label>
+
+                                <Form.Control
+                                    type="number"
+                                    name="stock"
+                                    placeholder="Cantidad"
+                                    value={
+                                        nuevoProducto.stock
+                                    }
+                                    onChange={handleChange}
+                                    disabled={deshabilitado}
+                                />
+
+                            </Form.Group>
+
+                        </div>
+
+                    </div>
+
+                </Form>
+
+            </Modal.Body>
+
+            <Modal.Footer>
+
+                <Button
+                    variant="secondary"
+                    onClick={handleCerrar}
+                    disabled={deshabilitado}
+                >
+                    Cancelar
+                </Button>
+
+                <Button
+                    variant="primary"
+                    onClick={handleSubmit}
+                    disabled={
+                        deshabilitado ||
+                        !nuevoProducto.nombre_producto.trim()
+                    }
+                >
+
+                    {deshabilitado ? (
+                        <>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                className="me-2"
+                            />
+
+                            Guardando...
+                        </>
+                    ) : (
+                        'Guardar Producto'
+                    )}
+
+                </Button>
+
+            </Modal.Footer>
+
+        </Modal>
+    );
 };
 
 export default ModalRegistroProducto;

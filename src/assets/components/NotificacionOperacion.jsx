@@ -1,47 +1,53 @@
-import { useEffect, useState } from 'react';
-import { Toast, ToastContainer } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Toast, ToastContainer, Spinner } from 'react-bootstrap';
 
-const NotificacionOperacion = ({ mostrar, mensaje, tipo, onCerrar }) => {
-  const [visible, setVisible] = useState(mostrar);
+const NotificacionOperacion = ({ 
+    mostrar, 
+    mensaje, 
+    tipo = "info", 
+    onCerrar 
+}) => {
 
-  // Corregido: Evitamos actualizar estado innecesariamente
-  useEffect(() => {
-    setVisible(mostrar);
-  }, [mostrar]);
+    const [visible, setVisible] = useState(false);
 
-  const fechahora = () => {
-    const fecha = new Date();
-    const ano = fecha.getFullYear();
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-    const dia = String(fecha.getDate()).padStart(2, '0');
-    return `${dia}-${mes}-${ano}`;
-  };
+    useEffect(() => {
+        setVisible(mostrar);
+    }, [mostrar]);
 
-  return (
-    <ToastContainer position="top-center" className="p-2">
-      <Toast 
-        onClose={onCerrar} 
-        show={visible} 
-        delay={3000} 
-        autohide
-      >
-        <Toast.Header>
-          <strong className="me-auto">
-            {tipo === 'exito' ? '✅ Éxito' : 
-             tipo === 'advertencia' ? '⚠️ Advertencia' : '❌ Error'}
-          </strong>
-          <small className="text-muted">{fechahora()}</small>
-        </Toast.Header>
-        <Toast.Body className={
-          tipo === 'exito' ? 'text-white bg-success' : 
-          tipo === 'advertencia' ? 'text-white bg-warning' : 
-          'text-white bg-danger'
-        }>
-          {mensaje}
-        </Toast.Body>
-      </Toast>
-    </ToastContainer>
-  );
+    const getConfig = () => {
+        switch(tipo) {
+            case 'success':
+                return { bg: 'success', icon: '✅', title: 'Éxito' };
+            case 'warning':
+                return { bg: 'warning', icon: '⚠️', title: 'Advertencia' };
+            case 'danger':
+                return { bg: 'danger', icon: '❌', title: 'Error' };
+            default:
+                return { bg: 'info', icon: 'ℹ️', title: 'Información' };
+        }
+    };
+
+    const { bg, icon, title } = getConfig();
+
+    return (
+        <ToastContainer position="top-center" className="p-3" style={{ zIndex: 9999 }}>
+            <Toast 
+                show={visible} 
+                onClose={onCerrar} 
+                delay={4000} 
+                autohide
+                bg={bg}
+            >
+                <Toast.Header className="text-white">
+                    <strong className="me-auto">{icon} {title}</strong>
+                    <small>Ahora</small>
+                </Toast.Header>
+                <Toast.Body className="text-white">
+                    {mensaje}
+                </Toast.Body>
+            </Toast>
+        </ToastContainer>
+    );
 };
 
 export default NotificacionOperacion;

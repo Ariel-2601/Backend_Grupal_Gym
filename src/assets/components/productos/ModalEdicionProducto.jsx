@@ -1,94 +1,249 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable react/prop-types */
+import React, { useState, useEffect } from 'react';
 
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import {
+    Modal,
+    Button,
+    Form,
+    Spinner
+} from 'react-bootstrap';
 
 const ModalEdicionProducto = ({
-  show,
-  handleClose,
-  producto,
-  actualizarProducto,
+    mostrar,
+    setMostrar,
+    producto,
+    actualizarProducto
 }) => {
-  const [nombre, setNombre] = useState("");
-  const [precio, setPrecio] = useState("");
-  const [stock, setStock] = useState("");
 
-  useEffect(() => {
-    if (producto) {
-      setNombre(producto.nombre || "");
-      setPrecio(producto.precio || "");
-      setStock(producto.stock || "");
-    }
-  }, [producto]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    actualizarProducto({
-      ...producto,
-      nombre,
-      precio,
-      stock,
+    const [productoEditado, setProductoEditado] = useState({
+        id_producto: '',
+        nombre_producto: '',
+        precio: '',
+        stock: ''
     });
 
-    handleClose();
-  };
+    const [deshabilitado, setDeshabilitado] = useState(false);
 
-  return (
-    <Modal show={show} onHide={handleClose} centered>
-      <Form onSubmit={handleSubmit}>
-        <Modal.Header closeButton>
-          <Modal.Title>Editar Producto</Modal.Title>
-        </Modal.Header>
+    // =========================
+    // Cargar datos
+    // =========================
 
-        <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Nombre del Producto</Form.Label>
+    useEffect(() => {
 
-            <Form.Control
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-            />
-          </Form.Group>
+        if (producto) {
 
-          <Form.Group className="mb-3">
-            <Form.Label>Precio</Form.Label>
+            setProductoEditado({
+                id_producto: producto.id_producto,
 
-            <Form.Control
-              type="number"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
-              required
-            />
-          </Form.Group>
+                nombre_producto:
+                    producto.nombre_producto || '',
 
-          <Form.Group className="mb-3">
-            <Form.Label>Stock</Form.Label>
+                precio:
+                    producto.precio || '',
 
-            <Form.Control
-              type="number"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              required
-            />
-          </Form.Group>
-        </Modal.Body>
+                stock:
+                    producto.stock || ''
+            });
+        }
 
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Cancelar
-          </Button>
+    }, [producto]);
 
-          <Button variant="primary" type="submit">
-            Guardar Cambios
-          </Button>
-        </Modal.Footer>
-      </Form>
-    </Modal>
-  );
+    // =========================
+    // Cambios inputs
+    // =========================
+
+    const handleChange = (e) => {
+
+        setProductoEditado({
+            ...productoEditado,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    // =========================
+    // Guardar cambios
+    // =========================
+
+    const handleSubmit = async () => {
+
+        if (!productoEditado.nombre_producto.trim())
+            return;
+
+        setDeshabilitado(true);
+
+        try {
+
+            await actualizarProducto(
+                productoEditado
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Error al actualizar producto:",
+                error
+            );
+
+        } finally {
+
+            setDeshabilitado(false);
+        }
+    };
+
+    // =========================
+    // Cerrar modal
+    // =========================
+
+    const handleCerrar = () => {
+
+        setDeshabilitado(false);
+
+        setMostrar(false);
+    };
+
+    // =========================
+    // Render
+    // =========================
+
+    return (
+
+        <Modal
+            show={mostrar}
+            onHide={handleCerrar}
+            backdrop="static"
+            keyboard={false}
+            centered
+        >
+
+            <Modal.Header closeButton>
+
+                <Modal.Title>
+                    <i className="bi bi-pencil-square me-2"></i>
+                    Editar Producto
+                </Modal.Title>
+
+            </Modal.Header>
+
+            <Modal.Body>
+
+                <Form>
+
+                    <Form.Group className="mb-3">
+
+                        <Form.Label>
+                            Nombre del Producto
+                            <span className="text-danger">
+                                *
+                            </span>
+                        </Form.Label>
+
+                        <Form.Control
+                            type="text"
+                            name="nombre_producto"
+                            placeholder="Ej: Proteína Whey 2kg"
+                            value={
+                                productoEditado.nombre_producto
+                            }
+                            onChange={handleChange}
+                            disabled={deshabilitado}
+                        />
+
+                    </Form.Group>
+
+                    <div className="row">
+
+                        <div className="col-md-6">
+
+                            <Form.Group className="mb-3">
+
+                                <Form.Label>
+                                    Precio ($)
+                                </Form.Label>
+
+                                <Form.Control
+                                    type="number"
+                                    step="0.01"
+                                    name="precio"
+                                    placeholder="0.00"
+                                    value={
+                                        productoEditado.precio
+                                    }
+                                    onChange={handleChange}
+                                    disabled={deshabilitado}
+                                />
+
+                            </Form.Group>
+
+                        </div>
+
+                        <div className="col-md-6">
+
+                            <Form.Group className="mb-3">
+
+                                <Form.Label>
+                                    Stock
+                                </Form.Label>
+
+                                <Form.Control
+                                    type="number"
+                                    name="stock"
+                                    placeholder="Cantidad disponible"
+                                    value={
+                                        productoEditado.stock
+                                    }
+                                    onChange={handleChange}
+                                    disabled={deshabilitado}
+                                />
+
+                            </Form.Group>
+
+                        </div>
+
+                    </div>
+
+                </Form>
+
+            </Modal.Body>
+
+            <Modal.Footer>
+
+                <Button
+                    variant="secondary"
+                    onClick={handleCerrar}
+                    disabled={deshabilitado}
+                >
+                    Cancelar
+                </Button>
+
+                <Button
+                    variant="primary"
+                    onClick={handleSubmit}
+                    disabled={
+                        deshabilitado ||
+                        !productoEditado.nombre_producto.trim()
+                    }
+                >
+
+                    {deshabilitado ? (
+                        <>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                className="me-2"
+                            />
+
+                            Actualizando...
+                        </>
+                    ) : (
+                        'Guardar Cambios'
+                    )}
+
+                </Button>
+
+            </Modal.Footer>
+
+        </Modal>
+    );
 };
 
 export default ModalEdicionProducto;

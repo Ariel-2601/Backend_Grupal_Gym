@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-
 import {
     Modal,
     Button,
-    Form
+    Form,
+    Spinner          // ← ¡ESTO FALTABA!
 } from 'react-bootstrap';
 
 const ModalRegistroCliente = ({
     mostrar,
     setMostrar,
-    agregarCliente,
-    deshabilitado
+    agregarCliente
 }) => {
 
     const [nuevoCliente, setNuevoCliente] = useState({
@@ -22,12 +21,12 @@ const ModalRegistroCliente = ({
         estado: 'Activo'
     });
 
-    // =========================
-    // Cambios inputs
-    // =========================
+    const [deshabilitado, setDeshabilitado] = useState(false);
 
+    // =========================
+    // Manejo de cambios en inputs
+    // =========================
     const handleChange = (e) => {
-
         setNuevoCliente({
             ...nuevoCliente,
             [e.target.name]: e.target.value
@@ -35,20 +34,24 @@ const ModalRegistroCliente = ({
     };
 
     // =========================
-    // Guardar
+    // Guardar Cliente
     // =========================
-
     const handleSubmit = async () => {
+        setDeshabilitado(true);
 
-        await agregarCliente(nuevoCliente);
+        try {
+            await agregarCliente(nuevoCliente);
+        } catch (error) {
+            console.error("Error en modal:", error);
+        } finally {
+            setDeshabilitado(false);
+        }
     };
 
     // =========================
-    // Cerrar modal
+    // Cerrar y Limpiar Modal
     // =========================
-
     const handleCerrar = () => {
-
         setNuevoCliente({
             nombres: '',
             apellidos: '',
@@ -57,16 +60,11 @@ const ModalRegistroCliente = ({
             correo: '',
             estado: 'Activo'
         });
-
+        setDeshabilitado(false);
         setMostrar(false);
     };
 
-    // =========================
-    // Render
-    // =========================
-
     return (
-
         <Modal
             show={mostrar}
             onHide={handleCerrar}
@@ -74,28 +72,17 @@ const ModalRegistroCliente = ({
             keyboard={false}
             centered
         >
-
             <Modal.Header closeButton>
-
                 <Modal.Title>
-
+                    <i className="bi bi-person-plus me-2"></i>
                     Registrar Nuevo Cliente
-
                 </Modal.Title>
-
             </Modal.Header>
 
             <Modal.Body>
-
                 <Form>
-
-                    {/* Nombres */}
                     <Form.Group className="mb-3">
-
-                        <Form.Label>
-                            Nombres
-                        </Form.Label>
-
+                        <Form.Label>Nombres <span className="text-danger">*</span></Form.Label>
                         <Form.Control
                             type="text"
                             name="nombres"
@@ -104,16 +91,10 @@ const ModalRegistroCliente = ({
                             onChange={handleChange}
                             disabled={deshabilitado}
                         />
-
                     </Form.Group>
 
-                    {/* Apellidos */}
                     <Form.Group className="mb-3">
-
-                        <Form.Label>
-                            Apellidos
-                        </Form.Label>
-
+                        <Form.Label>Apellidos</Form.Label>
                         <Form.Control
                             type="text"
                             name="apellidos"
@@ -122,16 +103,10 @@ const ModalRegistroCliente = ({
                             onChange={handleChange}
                             disabled={deshabilitado}
                         />
-
                     </Form.Group>
 
-                    {/* Edad */}
                     <Form.Group className="mb-3">
-
-                        <Form.Label>
-                            Edad
-                        </Form.Label>
-
+                        <Form.Label>Edad</Form.Label>
                         <Form.Control
                             type="number"
                             name="edad"
@@ -140,16 +115,10 @@ const ModalRegistroCliente = ({
                             onChange={handleChange}
                             disabled={deshabilitado}
                         />
-
                     </Form.Group>
 
-                    {/* Teléfono */}
                     <Form.Group className="mb-3">
-
-                        <Form.Label>
-                            Teléfono
-                        </Form.Label>
-
+                        <Form.Label>Teléfono</Form.Label>
                         <Form.Control
                             type="text"
                             name="telefono"
@@ -158,86 +127,64 @@ const ModalRegistroCliente = ({
                             onChange={handleChange}
                             disabled={deshabilitado}
                         />
-
                     </Form.Group>
 
-                    {/* Correo */}
                     <Form.Group className="mb-3">
-
-                        <Form.Label>
-                            Correo Electrónico
-                        </Form.Label>
-
+                        <Form.Label>Correo Electrónico</Form.Label>
                         <Form.Control
                             type="email"
                             name="correo"
-                            placeholder="Ingrese el correo"
+                            placeholder="ejemplo@correo.com"
                             value={nuevoCliente.correo}
                             onChange={handleChange}
                             disabled={deshabilitado}
                         />
-
                     </Form.Group>
 
-                    {/* Estado */}
                     <Form.Group className="mb-3">
-
-                        <Form.Label>
-                            Estado
-                        </Form.Label>
-
+                        <Form.Label>Estado</Form.Label>
                         <Form.Select
                             name="estado"
                             value={nuevoCliente.estado}
                             onChange={handleChange}
                             disabled={deshabilitado}
                         >
-
-                            <option value="Activo">
-                                Activo
-                            </option>
-
-                            <option value="Inactivo">
-                                Inactivo
-                            </option>
-
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
                         </Form.Select>
-
                     </Form.Group>
-
                 </Form>
-
             </Modal.Body>
 
             <Modal.Footer>
-
                 <Button
                     variant="secondary"
                     onClick={handleCerrar}
                     disabled={deshabilitado}
                 >
-
                     Cancelar
-
                 </Button>
 
                 <Button
                     variant="primary"
                     onClick={handleSubmit}
-                    disabled={
-                        deshabilitado ||
-                        !nuevoCliente.nombres.trim()
-                    }
+                    disabled={deshabilitado || !nuevoCliente.nombres.trim()}
                 >
-
-                    {deshabilitado
-                        ? 'Guardando...'
-                        : 'Guardar'}
-
+                    {deshabilitado ? (
+                        <>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                className="me-2"
+                            />
+                            Guardando...
+                        </>
+                    ) : (
+                        'Guardar Cliente'
+                    )}
                 </Button>
-
             </Modal.Footer>
-
         </Modal>
     );
 };

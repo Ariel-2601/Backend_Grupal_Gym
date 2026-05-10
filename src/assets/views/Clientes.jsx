@@ -141,48 +141,42 @@ const Clientes = () => {
     // Actualizar cliente
     // =========================
 
-    const actualizarCliente = async (clienteActualizado) => {
+const actualizarCliente = async (clienteActualizado) => {
+    try {
+        const { error } = await supabase
+            .from("clientes")
+            .update({
+                nombres: clienteActualizado.nombres,
+                apellidos: clienteActualizado.apellidos,
+                edad: clienteActualizado.edad,
+                telefono: clienteActualizado.telefono,
+                correo: clienteActualizado.correo,
+                estado: clienteActualizado.estado
+            })
+            .eq("id_cliente", clienteActualizado.id_cliente);
 
-        try {
+        if (error) throw error;
 
-            const { error } = await supabase
-                .from("clientes")
-                .update({
-                    nombres: clienteActualizado.nombres,
-                    apellidos: clienteActualizado.apellidos,
-                    edad: clienteActualizado.edad,
-                    telefono: clienteActualizado.telefono,
-                    correo: clienteActualizado.correo,
-                    estado: clienteActualizado.estado
-                })
-                .eq(
-                    "id_cliente",
-                    clienteActualizado.id_cliente
-                );
+        // ✅ ÉXITO
+        setToast({
+            mostrar: true,
+            mensaje: "Cliente actualizado correctamente.",
+            tipo: "success"        // ← Debe ser "success"
+        });
 
-            if (error) throw error;
+        setMostrarModalEdicion(false);
+        await cargarClientes();
 
-            setToast({
-                mostrar: true,
-                mensaje: "Cliente actualizado correctamente.",
-                tipo: "success"
-            });
-
-            setMostrarModalEdicion(false);
-
-            await cargarClientes();
-
-        } catch (error) {
-
-            console.log(error);
-
-            setToast({
-                mostrar: true,
-                mensaje: "Error al actualizar cliente.",
-                tipo: "danger"
-            });
-        }
-    };
+    } catch (error) {
+        console.error("Error al actualizar:", error);
+        
+        setToast({
+            mostrar: true,
+            mensaje: "Error al actualizar cliente.",
+            tipo: "danger"
+        });
+    }
+};
 
     // =========================
     // Eliminar cliente
@@ -268,22 +262,18 @@ const Clientes = () => {
             <hr />
 
             {/* Tabla */}
-            <TablaClientes
-                clientes={clientes}
-                cargando={cargando}
-                recargar={cargarClientes}
-
-                onEditar={(cliente) => {
-                    setClienteSeleccionado(cliente);
-                    setMostrarModalEdicion(true);
-                }}
-
-                onEliminar={(cliente) => {
-                    setClienteSeleccionado(cliente);
-                    setMostrarModalEliminacion(true);
-                }}
-            />
-
+<TablaClientes
+    clientes={clientes}
+    cargando={cargando}
+    onEditar={(cliente) => {
+        setClienteSeleccionado(cliente);
+        setMostrarModalEdicion(true);
+    }}
+    onEliminar={(cliente) => {
+        setClienteSeleccionado(cliente);
+        setMostrarModalEliminacion(true);
+    }}
+/>
             {/* Modal Registro */}
             <ModalRegistroCliente
                 mostrar={mostrarModal}
