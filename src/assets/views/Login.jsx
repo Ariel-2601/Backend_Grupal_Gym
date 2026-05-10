@@ -1,34 +1,74 @@
 import React, { useState, useEffect } from "react";
+
 import { useNavigate } from "react-router-dom";
+
 import FormularioLogin from "../components/login/FormularioLogin";
 
+import { supabase } from "../database/supabaseconfig";
+
 const Login = () => {
+
   const [usuario, setUsuario] = useState("");
+
   const [contrasena, setContrasena] = useState("");
+
   const [error, setError] = useState(null);
+
   const navigate = useNavigate();
 
   const iniciarSesion = async () => {
+
     try {
-      // Aquí deberías usar supabase.auth.signInWithPassword si tienes configurado Supabase
-      // Por ahora simulamos según la guía
-      if (usuario && contrasena) {
-        localStorage.setItem("usuario-supabase", usuario);
-        navigate("/");
-      } else {
-        setError("Usuario o contraseña incorrectos");
+
+      setError(null);
+
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+
+          email: usuario,
+
+          password: contrasena
+
+        });
+
+      if (error) {
+
+        setError(
+          "Correo o contraseña incorrectos"
+        );
+
+        return;
       }
+
+      localStorage.setItem(
+        "usuario-supabase",
+        data.user.email
+      );
+
+      navigate("/");
+
     } catch (err) {
-      setError("Error al conectar con el servidor");
+
+      console.log(err);
+
+      setError(
+        "Error al conectar con el servidor"
+      );
     }
   };
 
-  // useEffect para validar si ya está autenticado
   useEffect(() => {
-    const usuarioGuardado = localStorage.getItem("usuario-supabase");
+
+    const usuarioGuardado =
+      localStorage.getItem(
+        "usuario-supabase"
+      );
+
     if (usuarioGuardado) {
+
       navigate("/");
     }
+
   }, [navigate]);
 
   const estiloContenedor = {
@@ -40,13 +80,16 @@ const Login = () => {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "linear-gradient(135deg, #FFDEE9, #B5FFFC)",
+    background:
+      "linear-gradient(135deg, #FFDEE9, #B5FFFC)",
     overflow: "hidden",
     padding: "20px",
   };
 
   return (
+
     <div style={estiloContenedor}>
+
       <FormularioLogin
         usuario={usuario}
         contrasena={contrasena}
@@ -55,6 +98,7 @@ const Login = () => {
         setContrasena={setContrasena}
         iniciarSesion={iniciarSesion}
       />
+
     </div>
   );
 };
