@@ -16,47 +16,50 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const iniciarSesion = async () => {
+const iniciarSesion = async () => {
 
-    try {
+  try {
 
-      setError(null);
+    setError(null);
 
-      const { data, error } =
-        await supabase.auth.signInWithPassword({
+    console.log("Usuario:", usuario);
+    console.log("Contraseña:", contrasena);
 
-          email: usuario,
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
 
-          password: contrasena
+        email: usuario,
 
-        });
+        password: contrasena
 
-      if (error) {
+      });
 
-        setError(
-          "Correo o contraseña incorrectos"
-        );
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
 
-        return;
-      }
+    if (error) {
 
-      localStorage.setItem(
-        "usuario-supabase",
-        data.user.email
-      );
+      setError(error.message);
 
-      navigate("/");
-
-    } catch (err) {
-
-      console.log(err);
-
-      setError(
-        "Error al conectar con el servidor"
-      );
+      return;
     }
-  };
 
+    localStorage.setItem(
+      "usuario-supabase",
+      data.user.email
+    );
+
+    navigate("/");
+
+  } catch (err) {
+
+    console.log(err);
+
+    setError(
+      "Error al conectar con el servidor"
+    );
+  }
+};
   useEffect(() => {
 
     const usuarioGuardado =
