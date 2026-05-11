@@ -1,12 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from "react";
 
-import {
-    Container,
-    Row,
-    Col,
-    Button
-} from "react-bootstrap";
+import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
 
@@ -17,301 +12,286 @@ import ModalEliminacionCliente from "../components/clientes/ModalEliminacionClie
 import TablaClientes from "../components/clientes/TablaClientes";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
+import TarjetaClientes from "../components/clientes/TarjetaClientes";
 
 const Clientes = () => {
+  // =========================
+  // Estados
+  // =========================
 
-    // =========================
-    // Estados
-    // =========================
+  const [mostrarModal, setMostrarModal] = useState(false);
 
-    const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
 
-    const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+  const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
 
-    const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
+  const [clientes, setClientes] = useState([]);
 
-    const [clientes, setClientes] = useState([]);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
-    const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const [cargando, setCargando] = useState(false);
 
-    const [cargando, setCargando] = useState(false);
+  // =========================
+  // Toast
+  // =========================
 
-    // =========================
-    // Toast
-    // =========================
+  const [toast, setToast] = useState({
+    mostrar: false,
+    mensaje: "",
+    tipo: "",
+  });
 
-    const [toast, setToast] = useState({
-        mostrar: false,
-        mensaje: "",
-        tipo: ""
-    });
+  // =========================
+  // Cargar clientes
+  // =========================
 
-    // =========================
-    // Cargar clientes
-    // =========================
-
-    const cargarClientes = async () => {
-
-        try {
-
-            setCargando(true);
-
-            const { data, error } = await supabase
-                .from("clientes")
-                .select("*")
-                .order("id_cliente", { ascending: true });
-
-            if (error) throw error;
-
-            setClientes(data || []);
-
-        } catch (error) {
-
-            console.log("Error al cargar clientes:", error);
-
-            setToast({
-                mostrar: true,
-                mensaje: "Error al cargar clientes.",
-                tipo: "danger"
-            });
-
-        } finally {
-
-            setCargando(false);
-        }
-    };
-
-    // =========================
-    // Agregar cliente
-    // =========================
-
-    const agregarCliente = async (nuevoCliente) => {
-
-        try {
-
-            if (!nuevoCliente.nombres.trim()) {
-
-                setToast({
-                    mostrar: true,
-                    mensaje: "Debe ingresar el nombre.",
-                    tipo: "warning"
-                });
-
-                return;
-            }
-
-            const { error } = await supabase
-                .from("clientes")
-                .insert([
-                    {
-                        nombres: nuevoCliente.nombres,
-                        apellidos: nuevoCliente.apellidos,
-                        edad: nuevoCliente.edad,
-                        telefono: nuevoCliente.telefono,
-                        correo: nuevoCliente.correo,
-                        estado: nuevoCliente.estado
-                    }
-                ]);
-
-            if (error) throw error;
-
-            setToast({
-                mostrar: true,
-                mensaje: "Cliente registrado correctamente.",
-                tipo: "success"
-            });
-
-            setMostrarModal(false);
-
-            await cargarClientes();
-
-        } catch (error) {
-
-            console.log("Error al registrar:", error);
-
-            setToast({
-                mostrar: true,
-                mensaje: "Error al registrar cliente.",
-                tipo: "danger"
-            });
-        }
-    };
-
-    // =========================
-    // Actualizar cliente
-    // =========================
-
-const actualizarCliente = async (clienteActualizado) => {
+  const cargarClientes = async () => {
     try {
-        const { error } = await supabase
-            .from("clientes")
-            .update({
-                nombres: clienteActualizado.nombres,
-                apellidos: clienteActualizado.apellidos,
-                edad: clienteActualizado.edad,
-                telefono: clienteActualizado.telefono,
-                correo: clienteActualizado.correo,
-                estado: clienteActualizado.estado
-            })
-            .eq("id_cliente", clienteActualizado.id_cliente);
+      setCargando(true);
 
-        if (error) throw error;
+      const { data, error } = await supabase
+        .from("clientes")
+        .select("*")
+        .order("id_cliente", { ascending: true });
 
-        // ✅ ÉXITO
-        setToast({
-            mostrar: true,
-            mensaje: "Cliente actualizado correctamente.",
-            tipo: "success"        // ← Debe ser "success"
-        });
+      if (error) throw error;
 
-        setMostrarModalEdicion(false);
-        await cargarClientes();
-
+      setClientes(data || []);
     } catch (error) {
-        console.error("Error al actualizar:", error);
-        
-        setToast({
-            mostrar: true,
-            mensaje: "Error al actualizar cliente.",
-            tipo: "danger"
-        });
+      console.log("Error al cargar clientes:", error);
+
+      setToast({
+        mostrar: true,
+        mensaje: "Error al cargar clientes.",
+        tipo: "danger",
+      });
+    } finally {
+      setCargando(false);
     }
-};
+  };
 
-    // =========================
-    // Eliminar cliente
-    // =========================
+  // =========================
+  // Agregar cliente
+  // =========================
 
-    const eliminarCliente = async (id) => {
+  const agregarCliente = async (nuevoCliente) => {
+    try {
+      if (!nuevoCliente.nombres.trim()) {
+        setToast({
+          mostrar: true,
+          mensaje: "Debe ingresar el nombre.",
+          tipo: "warning",
+        });
 
-        try {
+        return;
+      }
 
-            const { error } = await supabase
-                .from("clientes")
-                .delete()
-                .eq("id_cliente", id);
+      const { error } = await supabase.from("clientes").insert([
+        {
+          nombres: nuevoCliente.nombres,
+          apellidos: nuevoCliente.apellidos,
+          edad: nuevoCliente.edad,
+          telefono: nuevoCliente.telefono,
+          correo: nuevoCliente.correo,
+          estado: nuevoCliente.estado,
+        },
+      ]);
 
-            if (error) throw error;
+      if (error) throw error;
 
-            setToast({
-                mostrar: true,
-                mensaje: "Cliente eliminado correctamente.",
-                tipo: "success"
-            });
+      setToast({
+        mostrar: true,
+        mensaje: "Cliente registrado correctamente.",
+        tipo: "success",
+      });
 
-            setMostrarModalEliminacion(false);
+      setMostrarModal(false);
 
-            await cargarClientes();
+      await cargarClientes();
+    } catch (error) {
+      console.log("Error al registrar:", error);
 
-        } catch (error) {
+      setToast({
+        mostrar: true,
+        mensaje: "Error al registrar cliente.",
+        tipo: "danger",
+      });
+    }
+  };
 
-            console.log(error);
+  // =========================
+  // Actualizar cliente
+  // =========================
 
-            setToast({
-                mostrar: true,
-                mensaje: "Error al eliminar cliente.",
-                tipo: "danger"
-            });
-        }
-    };
+  const actualizarCliente = async (clienteActualizado) => {
+    try {
+      const { error } = await supabase
+        .from("clientes")
+        .update({
+          nombres: clienteActualizado.nombres,
+          apellidos: clienteActualizado.apellidos,
+          edad: clienteActualizado.edad,
+          telefono: clienteActualizado.telefono,
+          correo: clienteActualizado.correo,
+          estado: clienteActualizado.estado,
+        })
+        .eq("id_cliente", clienteActualizado.id_cliente);
 
-    // =========================
-    // useEffect
-    // =========================
+      if (error) throw error;
 
-    useEffect(() => {
-        cargarClientes();
-    }, []);
+      // ✅ ÉXITO
+      setToast({
+        mostrar: true,
+        mensaje: "Cliente actualizado correctamente.",
+        tipo: "success", // ← Debe ser "success"
+      });
 
-    // =========================
-    // Render
-    // =========================
+      setMostrarModalEdicion(false);
+      await cargarClientes();
+    } catch (error) {
+      console.error("Error al actualizar:", error);
 
-    return (
+      setToast({
+        mostrar: true,
+        mensaje: "Error al actualizar cliente.",
+        tipo: "danger",
+      });
+    }
+  };
 
-        <Container className="mt-3">
+  // =========================
+  // Eliminar cliente
+  // =========================
 
-            {/* Encabezado */}
-            <Row className="align-items-center mb-3">
+  const eliminarCliente = async (id) => {
+    try {
+      const { error } = await supabase
+        .from("clientes")
+        .delete()
+        .eq("id_cliente", id);
 
-                <Col xs={9}>
+      if (error) throw error;
 
-                    <h3 className="mb-0">
-                        <i className="bi bi-people-fill me-2"></i>
-                        Clientes
-                    </h3>
+      setToast({
+        mostrar: true,
+        mensaje: "Cliente eliminado correctamente.",
+        tipo: "success",
+      });
 
-                </Col>
+      setMostrarModalEliminacion(false);
 
-                <Col xs={3} className="text-end">
+      await cargarClientes();
+    } catch (error) {
+      console.log(error);
 
-                    <Button
-                        onClick={() => setMostrarModal(true)}
-                    >
-                        <i className="bi bi-plus-lg"></i>
+      setToast({
+        mostrar: true,
+        mensaje: "Error al eliminar cliente.",
+        tipo: "danger",
+      });
+    }
+  };
 
-                        <span className="ms-2 d-none d-sm-inline">
-                            Nuevo Cliente
-                        </span>
-                    </Button>
+  // =========================
+  // useEffect
+  // =========================
 
-                </Col>
+  useEffect(() => {
+    cargarClientes();
+  }, []);
 
-            </Row>
+  // =========================
+  // Render
+  // =========================
 
-            <hr />
+  return (
+    <Container className="mt-3">
+      {/* Encabezado */}
+      <Row className="align-items-center mb-3">
+        <Col xs={9}>
+          <h3 className="mb-0">
+            <i className="bi bi-people-fill me-2"></i>
+            Clientes
+          </h3>
+        </Col>
 
-            {/* Tabla */}
-<TablaClientes
+        <Col xs={3} className="text-end">
+          <Button onClick={() => setMostrarModal(true)}>
+            <i className="bi bi-plus-lg"></i>
+
+            <span className="ms-2 d-none d-sm-inline">Nuevo Cliente</span>
+          </Button>
+        </Col>
+      </Row>
+
+      <hr />
+{/* TARJETAS → SOLO EN MÓVIL */}
+<div className="d-block d-lg-none">
+  <TarjetaClientes
+    clientes={clientes}
+    onEditar={(cliente) => {
+      setClienteSeleccionado(cliente);
+      setMostrarModalEdicion(true);
+    }}
+    onEliminar={(cliente) => {
+      setClienteSeleccionado(cliente);
+      setMostrarModalEliminacion(true);
+    }}
+  />
+</div>
+
+{/* TABLA → SOLO EN PANTALLAS GRANDES */}
+<div className="d-none d-lg-block">
+  <TablaClientes
     clientes={clientes}
     cargando={cargando}
     onEditar={(cliente) => {
-        setClienteSeleccionado(cliente);
-        setMostrarModalEdicion(true);
+      setClienteSeleccionado(cliente);
+      setMostrarModalEdicion(true);
     }}
     onEliminar={(cliente) => {
-        setClienteSeleccionado(cliente);
-        setMostrarModalEliminacion(true);
+      setClienteSeleccionado(cliente);
+      setMostrarModalEliminacion(true);
     }}
-/>
-            {/* Modal Registro */}
-            <ModalRegistroCliente
-                mostrar={mostrarModal}
-                setMostrar={setMostrarModal}
-                agregarCliente={agregarCliente}
-            />
+  />
+</div>
+      {/* Modal Registro */}
+      <ModalRegistroCliente
+        mostrar={mostrarModal}
+        setMostrar={setMostrarModal}
+        agregarCliente={agregarCliente}
+      />
 
-            {/* Modal Edición */}
-            <ModalEdicionClientes
-                mostrar={mostrarModalEdicion}
-                setMostrar={setMostrarModalEdicion}
-                cliente={clienteSeleccionado}
-                actualizarCliente={actualizarCliente}
-            />
+      {/* Modal Edición */}
+      <ModalEdicionClientes
+        mostrar={mostrarModalEdicion}
+        setMostrar={setMostrarModalEdicion}
+        cliente={clienteSeleccionado}
+        actualizarCliente={actualizarCliente}
+      />
 
-            {/* Modal Eliminación */}
-            <ModalEliminacionCliente
-                mostrar={mostrarModalEliminacion}
-                setMostrar={setMostrarModalEliminacion}
-                cliente={clienteSeleccionado}
-                eliminarCliente={eliminarCliente}
-            />
+      {/* Modal Eliminación */}
+      <ModalEliminacionCliente
+        mostrar={mostrarModalEliminacion}
+        setMostrar={setMostrarModalEliminacion}
+        cliente={clienteSeleccionado}
+        eliminarCliente={eliminarCliente}
+      />
 
-            {/* Toast */}
-            <NotificacionOperacion
-                mostrar={toast.mostrar}
-                mensaje={toast.mensaje}
-                tipo={toast.tipo}
-                onCerrar={() =>
-                    setToast({
-                        ...toast,
-                        mostrar: false
-                    })
-                }
-            />
-
-        </Container>
-    );
+      {/* Toast */}
+      <NotificacionOperacion
+        mostrar={toast.mostrar}
+        mensaje={toast.mensaje}
+        tipo={toast.tipo}
+        onCerrar={() =>
+          setToast({
+            ...toast,
+            mostrar: false,
+          })
+        }
+      />
+    </Container>
+  );
 };
 
 export default Clientes;

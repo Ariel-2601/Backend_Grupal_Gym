@@ -1,4 +1,8 @@
 /* ===== ESTILOS GENERALES ===== */
+.tarjeta-cliente:hover{
+    transform: translateY(-5px);
+    box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+}
 
 body {
   background-color: #f4f7fb;
