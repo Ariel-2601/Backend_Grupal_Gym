@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from "../../../assets/logo.png";
 
 import {
     Form,
@@ -121,15 +120,7 @@ const FormularioLogin = ({
                                     onClick={iniciarSesion}
                                 >
 
-  <i
-   src={logo}
-   alt="Logo Gym"
-   style={{
-      width: "120px",
-      height: "120px",
-      objectFit: "contain"
-   }}
-/>
+                                    <i className="bi bi-box-arrow-in-right me-2"></i>
 
                                     Iniciar Sesión
 
