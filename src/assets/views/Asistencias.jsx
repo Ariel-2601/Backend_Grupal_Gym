@@ -89,64 +89,85 @@ const Asistencias = () => {
         }
     };
 
-    // =========================
-    // Registrar asistencia
-    // =========================
+  // =========================
+// Registrar asistencia
+// =========================
 
-    const agregarAsistencia = async (nuevaAsistencia) => {
+// =========================
+// Registrar asistencia
+// =========================
 
-        try {
+const agregarAsistencia = async (
+    nuevaAsistencia
+) => {
 
-            if (!nuevaAsistencia.id_cliente) {
+    try {
 
-                setToast({
-                    mostrar: true,
-                    mensaje: "Debe seleccionar un cliente.",
-                    tipo: "warning"
-                });
+        const asistenciaData = {
 
-                return;
-            }
+            id_cliente:
+                Number(
+                    nuevaAsistencia.id_cliente
+                ) || 1,
 
-            const { error } = await supabase
-                .from("asistencias")
-                .insert([
-                    {
-                        id_cliente: nuevaAsistencia.id_cliente,
-                        fecha: nuevaAsistencia.fecha,
-                        hora_entrada:
-                            nuevaAsistencia.hora_entrada,
-                        hora_salida:
-                            nuevaAsistencia.hora_salida,
-                        observacion:
-                            nuevaAsistencia.observacion
-                    }
-                ]);
+            fecha:
+                nuevaAsistencia.fecha ||
+                new Date()
+                    .toISOString()
+                    .split("T")[0],
 
-            if (error) throw error;
+            hora_entrada:
+                nuevaAsistencia.hora_entrada ||
+                "08:00",
 
-            setToast({
-                mostrar: true,
-                mensaje: "Asistencia registrada correctamente.",
-                tipo: "success"
-            });
+            hora_salida:
+                nuevaAsistencia.hora_salida ||
+                "10:00",
 
-            setMostrarModal(false);
+            observacion:
+                nuevaAsistencia.observacion ||
+                "Sin observación"
+        };
 
-            await cargarAsistencias();
+        console.log(
+            "DATOS A INSERTAR:",
+            asistenciaData
+        );
 
-        } catch (error) {
+        const { error } = await supabase
+            .from("asistencias")
+            .insert([
+                asistenciaData
+            ]);
 
-            console.log("Error al registrar:", error);
+        if (error) throw error;
 
-            setToast({
-                mostrar: true,
-                mensaje: "Error al registrar asistencia.",
-                tipo: "danger"
-            });
-        }
-    };
+        setToast({
+            mostrar: true,
+            mensaje:
+                "Asistencia registrada correctamente.",
+            tipo: "success"
+        });
 
+        setMostrarModal(false);
+
+        await cargarAsistencias();
+
+    } catch (error) {
+
+        console.log(
+            "ERROR COMPLETO:",
+            JSON.stringify(error, null, 2)
+        );
+
+        setToast({
+            mostrar: true,
+            mensaje:
+                "Error al registrar asistencia.",
+            tipo: "danger"
+        });
+    }
+};
     // =========================
     // Actualizar asistencia
     // =========================

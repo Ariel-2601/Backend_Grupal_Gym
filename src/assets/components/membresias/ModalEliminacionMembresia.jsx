@@ -1,38 +1,88 @@
+/* =========================
+ModalEliminacionMembresia.jsx
+========================= */
+
 /* eslint-disable react/prop-types */
+
 import React from "react";
-import { Modal, Button } from "react-bootstrap";
+
+import {
+  Modal,
+  Button
+} from "react-bootstrap";
 
 const ModalEliminacionMembresia = ({
-  show,
-  handleClose,
+  mostrar,
+  setMostrar,
   membresia,
   eliminarMembresia,
 }) => {
+
   const handleEliminar = () => {
-    eliminarMembresia(membresia.id);
-    handleClose();
+
+    eliminarMembresia(
+      membresia.id_membresia
+    );
+
+    setMostrar(false);
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+
+    <Modal
+      show={mostrar}
+      onHide={() => setMostrar(false)}
+      centered
+    >
+
       <Modal.Header closeButton>
-        <Modal.Title>Eliminar Membresía</Modal.Title>
+
+        <Modal.Title>
+
+          Eliminar Membresía
+
+        </Modal.Title>
+
       </Modal.Header>
 
       <Modal.Body>
-        ¿Estás seguro de eliminar la membresía{" "}
-        <strong>{membresia?.nombre}</strong>?
+
+        ¿Seguro que deseas eliminar la membresía{" "}
+
+        <strong>
+
+          {membresia?.nombre}
+
+        </strong>
+
+        ?
+
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
+
+        <Button
+          variant="secondary"
+          onClick={() =>
+            setMostrar(false)
+          }
+        >
+
           Cancelar
+
         </Button>
 
-        <Button variant="danger" onClick={handleEliminar}>
+        <Button
+          variant="danger"
+          onClick={handleEliminar}
+        >
+
           Eliminar
+
         </Button>
+
       </Modal.Footer>
+
     </Modal>
   );
 };

@@ -1,39 +1,85 @@
 /* eslint-disable react/prop-types */
 
 import React from "react";
-import { Modal, Button } from "react-bootstrap";
+
+import {
+  Modal,
+  Button
+} from "react-bootstrap";
 
 const ModalEliminacionAsistencias = ({
-  show,
-  handleClose,
+  mostrar,
+  setMostrar,
   asistencia,
   eliminarAsistencia,
 }) => {
+
   const handleEliminar = () => {
-    eliminarAsistencia(asistencia.id);
-    handleClose();
+
+    eliminarAsistencia(
+      asistencia.id_asistencia
+    );
+
+    setMostrar(false);
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+
+    <Modal
+      show={mostrar}
+      onHide={() => setMostrar(false)}
+      centered
+    >
+
       <Modal.Header closeButton>
-        <Modal.Title>Eliminar Asistencia</Modal.Title>
+
+        <Modal.Title>
+
+          Eliminar Asistencia
+
+        </Modal.Title>
+
       </Modal.Header>
 
       <Modal.Body>
+
         ¿Estás seguro de eliminar la asistencia de{" "}
-        <strong>{asistencia?.cliente}</strong>?
+
+        <strong>
+
+          {asistencia?.clientes?.nombres}{" "}
+          {asistencia?.clientes?.apellidos}
+
+        </strong>
+
+        ?
+
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
+
+        <Button
+          variant="secondary"
+          onClick={() =>
+            setMostrar(false)
+          }
+        >
+
           Cancelar
+
         </Button>
 
-        <Button variant="danger" onClick={handleEliminar}>
+        <Button
+          variant="danger"
+          onClick={handleEliminar}
+        >
+
           Eliminar
+
         </Button>
+
       </Modal.Footer>
+
     </Modal>
   );
 };

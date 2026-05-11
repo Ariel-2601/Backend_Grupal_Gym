@@ -1,90 +1,231 @@
+/* =========================
+ModalRegistroMembresia.jsx
+========================= */
+
 /* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react/prop-types */
+
 import React, { useState } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+
+import {
+  Modal,
+  Button,
+  Form
+} from "react-bootstrap";
 
 const ModalRegistroMembresia = ({
-  show,
-  handleClose,
-  registrarMembresia,
+  mostrar,
+  setMostrar,
+  agregarMembresia,
 }) => {
+
   const [nombre, setNombre] = useState("");
+
+  const [descripcion, setDescripcion] =
+    useState("");
+
   const [precio, setPrecio] = useState("");
-  const [duracion, setDuracion] = useState("");
+
+  const [duracionDias, setDuracionDias] =
+    useState("");
+
+  const [estado, setEstado] =
+    useState("Activa");
 
   const handleSubmit = (e) => {
+
     e.preventDefault();
 
-    registrarMembresia({
+    agregarMembresia({
+
       nombre,
+
+      descripcion,
+
       precio,
-      duracion,
+
+      duracion_dias: duracionDias,
+
+      estado
+
     });
 
     limpiarFormulario();
-    handleClose();
+
+    setMostrar(false);
   };
 
   const limpiarFormulario = () => {
+
     setNombre("");
+
+    setDescripcion("");
+
     setPrecio("");
-    setDuracion("");
+
+    setDuracionDias("");
+
+    setEstado("Activa");
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+
+    <Modal
+      show={mostrar}
+      onHide={() => setMostrar(false)}
+      centered
+    >
+
       <Form onSubmit={handleSubmit}>
+
         <Modal.Header closeButton>
-          <Modal.Title>Registrar Membresía</Modal.Title>
+
+          <Modal.Title>
+
+            Registrar Membresía
+
+          </Modal.Title>
+
         </Modal.Header>
 
         <Modal.Body>
+
           <Form.Group className="mb-3">
-            <Form.Label>Nombre de la Membresía</Form.Label>
+
+            <Form.Label>
+
+              Nombre
+
+            </Form.Label>
 
             <Form.Control
               type="text"
-              placeholder="Ingrese el nombre"
               value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              onChange={(e) =>
+                setNombre(e.target.value)
+              }
               required
             />
+
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Precio</Form.Label>
+
+            <Form.Label>
+
+              Descripción
+
+            </Form.Label>
+
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={descripcion}
+              onChange={(e) =>
+                setDescripcion(
+                  e.target.value
+                )
+              }
+              required
+            />
+
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+
+            <Form.Label>
+
+              Precio
+
+            </Form.Label>
 
             <Form.Control
               type="number"
-              placeholder="Ingrese el precio"
               value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
+              onChange={(e) =>
+                setPrecio(e.target.value)
+              }
               required
             />
+
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Duración</Form.Label>
+
+            <Form.Label>
+
+              Duración en días
+
+            </Form.Label>
 
             <Form.Control
-              type="text"
-              placeholder="Ejemplo: 1 mes"
-              value={duracion}
-              onChange={(e) => setDuracion(e.target.value)}
+              type="number"
+              value={duracionDias}
+              onChange={(e) =>
+                setDuracionDias(
+                  e.target.value
+                )
+              }
               required
             />
+
           </Form.Group>
+
+          <Form.Group className="mb-3">
+
+            <Form.Label>
+
+              Estado
+
+            </Form.Label>
+
+            <Form.Select
+              value={estado}
+              onChange={(e) =>
+                setEstado(e.target.value)
+              }
+            >
+
+              <option value="Activa">
+                Activa
+              </option>
+
+              <option value="Inactiva">
+                Inactiva
+              </option>
+
+            </Form.Select>
+
+          </Form.Group>
+
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+
+          <Button
+            variant="secondary"
+            onClick={() =>
+              setMostrar(false)
+            }
+          >
+
             Cancelar
+
           </Button>
 
-          <Button variant="success" type="submit">
+          <Button
+            variant="success"
+            type="submit"
+          >
+
             Registrar
+
           </Button>
+
         </Modal.Footer>
+
       </Form>
+
     </Modal>
   );
 };
