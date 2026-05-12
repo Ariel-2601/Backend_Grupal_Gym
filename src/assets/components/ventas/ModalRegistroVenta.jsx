@@ -1,107 +1,153 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react/prop-types */
 
 import React, { useState } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+
+import {
+  Modal,
+  Button,
+  Form
+} from "react-bootstrap";
 
 const ModalRegistroVenta = ({
-  show,
-  handleClose,
-  registrarVenta,
+  mostrar,
+  setMostrar,
+  agregarVenta
 }) => {
-  const [cliente, setCliente] = useState("");
-  const [producto, setProducto] = useState("");
-  const [cantidad, setCantidad] = useState("");
-  const [total, setTotal] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const [nuevaVenta, setNuevaVenta] = useState({
+    id_cliente: "",
+    total: "",
+    metodo_pago: "",
+    fecha_venta: ""
+  });
 
-    registrarVenta({
-      cliente,
-      producto,
-      cantidad,
-      total,
+  const handleChange = (e) => {
+
+    setNuevaVenta({
+      ...nuevaVenta,
+      [e.target.name]: e.target.value
     });
-
-    limpiarFormulario();
-    handleClose();
   };
 
-  const limpiarFormulario = () => {
-    setCliente("");
-    setProducto("");
-    setCantidad("");
-    setTotal("");
+  const handleSubmit = async (e) => {
+
+    e.preventDefault();
+
+    await agregarVenta(nuevaVenta);
+
+    setNuevaVenta({
+      id_cliente: "",
+      total: "",
+      metodo_pago: "",
+      fecha_venta: ""
+    });
+
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+
+    <Modal
+      show={mostrar}
+      onHide={() => setMostrar(false)}
+      centered
+    >
+
       <Form onSubmit={handleSubmit}>
+
         <Modal.Header closeButton>
-          <Modal.Title>Registrar Venta</Modal.Title>
+          <Modal.Title>
+            Registrar Venta
+          </Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Cliente</Form.Label>
-
-            <Form.Control
-              type="text"
-              placeholder="Ingrese el cliente"
-              value={cliente}
-              onChange={(e) => setCliente(e.target.value)}
-              required
-            />
-          </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Producto</Form.Label>
 
-            <Form.Control
-              type="text"
-              placeholder="Ingrese el producto"
-              value={producto}
-              onChange={(e) => setProducto(e.target.value)}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Cantidad</Form.Label>
+            <Form.Label>
+              ID Cliente
+            </Form.Label>
 
             <Form.Control
               type="number"
-              placeholder="Ingrese la cantidad"
-              value={cantidad}
-              onChange={(e) => setCantidad(e.target.value)}
+              name="id_cliente"
+              value={nuevaVenta.id_cliente}
+              onChange={handleChange}
               required
             />
+
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Total</Form.Label>
+
+            <Form.Label>
+              Total
+            </Form.Label>
 
             <Form.Control
               type="number"
-              placeholder="Ingrese el total"
-              value={total}
-              onChange={(e) => setTotal(e.target.value)}
+              name="total"
+              value={nuevaVenta.total}
+              onChange={handleChange}
               required
             />
+
           </Form.Group>
+
+          <Form.Group className="mb-3">
+
+            <Form.Label>
+              Método de Pago
+            </Form.Label>
+
+            <Form.Control
+              type="text"
+              name="metodo_pago"
+              value={nuevaVenta.metodo_pago}
+              onChange={handleChange}
+              required
+            />
+
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+
+            <Form.Label>
+              Fecha
+            </Form.Label>
+
+            <Form.Control
+              type="date"
+              name="fecha_venta"
+              value={nuevaVenta.fecha_venta}
+              onChange={handleChange}
+              required
+            />
+
+          </Form.Group>
+
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+
+          <Button
+            variant="secondary"
+            onClick={() => setMostrar(false)}
+          >
             Cancelar
           </Button>
 
-          <Button variant="success" type="submit">
+          <Button
+            variant="success"
+            type="submit"
+          >
             Registrar
           </Button>
+
         </Modal.Footer>
+
       </Form>
+
     </Modal>
   );
 };

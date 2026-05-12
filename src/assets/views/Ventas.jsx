@@ -159,58 +159,46 @@ const Ventas = () => {
     // Actualizar venta
     // =========================
 
-    const actualizarVenta = async (
-        ventaActualizada
-    ) => {
+ const actualizarVenta = async (ventaActualizada) => {
 
-        try {
+    try {
 
-            const { error } = await supabase
-                .from("ventas")
-                .update({
-                    id_cliente:
-                        ventaActualizada.id_cliente,
+        const { error } = await supabase
+            .from("ventas")
+            .update({
+                id_cliente: ventaActualizada.id_cliente,
+                total: ventaActualizada.total,
+                metodo_pago: ventaActualizada.metodo_pago,
+                fecha_venta: ventaActualizada.fecha_venta
+            })
+            .eq(
+                "id_venta",
+                ventaActualizada.id_venta
+            );
 
-                    total:
-                        ventaActualizada.total,
+        if (error) throw error;
 
-                    metodo_pago:
-                        ventaActualizada.metodo_pago,
+        setToast({
+            mostrar: true,
+            mensaje: "Venta actualizada correctamente.",
+            tipo: "success"
+        });
 
-                    fecha_venta:
-                        ventaActualizada.fecha_venta
-                })
-                .eq(
-                    "id_venta",
-                    ventaActualizada.id_venta
-                );
+        setMostrarModalEdicion(false);
 
-            if (error) throw error;
+        await cargarVentas();
 
-            setToast({
-                mostrar: true,
-                mensaje:
-                    "Venta actualizada correctamente.",
-                tipo: "success"
-            });
+    } catch (error) {
 
-            setMostrarModalEdicion(false);
+        console.log(error);
 
-            await cargarVentas();
-
-        } catch (error) {
-
-            console.log(error);
-
-            setToast({
-                mostrar: true,
-                mensaje:
-                    "Error al actualizar venta.",
-                tipo: "danger"
-            });
-        }
-    };
-
+        setToast({
+            mostrar: true,
+            mensaje: "Error al actualizar venta.",
+            tipo: "danger"
+        });
+    }
+};
     // =========================
     // Eliminar venta
     // =========================

@@ -1,106 +1,161 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react/prop-types */
 
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import React, {
+  useState,
+  useEffect
+} from "react";
+
+import {
+  Modal,
+  Button,
+  Form
+} from "react-bootstrap";
 
 const ModalEdicionVenta = ({
-  show,
-  handleClose,
- venta,
-  actualizarVenta,
+  mostrar,
+  setMostrar,
+  venta,
+  actualizarVenta
 }) => {
-  const [cliente, setCliente] = useState("");
-  const [producto, setProducto] = useState("");
-  const [cantidad, setCantidad] = useState("");
-  const [total, setTotal] = useState("");
+
+  const [ventaEditada, setVentaEditada] = useState({
+    id_cliente: "",
+    total: "",
+    metodo_pago: "",
+    fecha_venta: ""
+  });
 
   useEffect(() => {
+
     if (venta) {
-      setCliente(venta.cliente || "");
-      setProducto(venta.producto || "");
-      setCantidad(venta.cantidad || "");
-      setTotal(venta.total || "");
+
+      setVentaEditada({
+        ...venta
+      });
+
     }
+
   }, [venta]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleChange = (e) => {
 
-    actualizarVenta({
-      ...venta,
-      cliente,
-      producto,
-      cantidad,
-      total,
+    setVentaEditada({
+      ...ventaEditada,
+      [e.target.name]: e.target.value
     });
 
-    handleClose();
+  };
+
+  const handleSubmit = async (e) => {
+
+    e.preventDefault();
+
+    await actualizarVenta(ventaEditada);
+
   };
 
   return (
-    <Modal show={show} onHide={handleClose} centered>
+
+    <Modal
+      show={mostrar}
+      onHide={() => setMostrar(false)}
+      centered
+    >
+
       <Form onSubmit={handleSubmit}>
+
         <Modal.Header closeButton>
-          <Modal.Title>Editar Venta</Modal.Title>
+
+          <Modal.Title>
+            Editar Venta
+          </Modal.Title>
+
         </Modal.Header>
 
         <Modal.Body>
-          <Form.Group className="mb-3">
-            <Form.Label>Cliente</Form.Label>
-
-            <Form.Control
-              type="text"
-              value={cliente}
-              onChange={(e) => setCliente(e.target.value)}
-              required
-            />
-          </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Producto</Form.Label>
 
-            <Form.Control
-              type="text"
-              value={producto}
-              onChange={(e) => setProducto(e.target.value)}
-              required
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>Cantidad</Form.Label>
+            <Form.Label>
+              ID Cliente
+            </Form.Label>
 
             <Form.Control
               type="number"
-              value={cantidad}
-              onChange={(e) => setCantidad(e.target.value)}
-              required
+              name="id_cliente"
+              value={ventaEditada.id_cliente || ""}
+              onChange={handleChange}
             />
+
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Total</Form.Label>
+
+            <Form.Label>
+              Total
+            </Form.Label>
 
             <Form.Control
               type="number"
-              value={total}
-              onChange={(e) => setTotal(e.target.value)}
-              required
+              name="total"
+              value={ventaEditada.total || ""}
+              onChange={handleChange}
             />
+
           </Form.Group>
+
+          <Form.Group className="mb-3">
+
+            <Form.Label>
+              Método Pago
+            </Form.Label>
+
+            <Form.Control
+              type="text"
+              name="metodo_pago"
+              value={ventaEditada.metodo_pago || ""}
+              onChange={handleChange}
+            />
+
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+
+            <Form.Label>
+              Fecha
+            </Form.Label>
+
+            <Form.Control
+              type="date"
+              name="fecha_venta"
+              value={ventaEditada.fecha_venta || ""}
+              onChange={handleChange}
+            />
+
+          </Form.Group>
+
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+
+          <Button
+            variant="secondary"
+            onClick={() => setMostrar(false)}
+          >
             Cancelar
           </Button>
 
-          <Button variant="primary" type="submit">
+          <Button
+            variant="primary"
+            type="submit"
+          >
             Guardar Cambios
           </Button>
+
         </Modal.Footer>
+
       </Form>
+
     </Modal>
   );
 };

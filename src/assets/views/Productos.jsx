@@ -15,6 +15,7 @@ import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import ModalEliminacionProducto from "../components/productos/ModalEliminacionProducto";
 
 import TablaProductos from "../components/productos/TablaProductos";
+import TarjetaProductos from "../components/productos/TarjetasProductos";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
@@ -86,132 +87,143 @@ const Productos = () => {
         }
     };
 
-// =========================
-// Agregar producto
-// =========================
+    // =========================
+    // Agregar producto
+    // =========================
 
-const agregarProducto = async (nuevoProducto) => {
+    const agregarProducto = async (nuevoProducto) => {
 
-    try {
+        try {
 
-        if (!nuevoProducto.nombre_producto?.trim()) {
+            if (!nuevoProducto.nombre_producto?.trim()) {
+
+                setToast({
+                    mostrar: true,
+                    mensaje: "Debe ingresar el nombre del producto.",
+                    tipo: "warning"
+                });
+
+                return;
+            }
+
+            const { error } = await supabase
+                .from("productos")
+                .insert([{
+                    nombre_producto:
+                        nuevoProducto.nombre_producto,
+
+                    categoria_producto:
+                        nuevoProducto.categoria_producto,
+
+                    precio:
+                        nuevoProducto.precio
+                            ? parseFloat(
+                                nuevoProducto.precio
+                            )
+                            : 0,
+
+                    stock:
+                        nuevoProducto.stock
+                            ? parseInt(
+                                nuevoProducto.stock
+                            )
+                            : 0
+                }]);
+
+            if (error) throw error;
+
             setToast({
                 mostrar: true,
-                mensaje: "Debe ingresar el nombre del producto.",
-                tipo: "warning"
+                mensaje:
+                    "Producto registrado correctamente.",
+                tipo: "success"
             });
-            return;
+
+            setMostrarModal(false);
+
+            await cargarProductos();
+
+        } catch (error) {
+
+            console.error(
+                "Error al registrar producto:",
+                error
+            );
+
+            setToast({
+                mostrar: true,
+                mensaje:
+                    error.message ||
+                    "Error al registrar producto.",
+
+                tipo: "danger"
+            });
         }
+    };
 
-        const { data, error } = await supabase
-            .from("productos")
-     .insert([{
-    nombre_producto: nuevoProducto.nombre_producto,
-    precio: nuevoProducto.precio
-        ? parseFloat(nuevoProducto.precio)
-        : 0,
-
-    stock: nuevoProducto.stock
-        ? parseInt(nuevoProducto.stock)
-        : 0
-}])
-            .select();
-
-        if (error) {
-            console.error("Error Supabase:", error);
-            throw error;
-        }
-
-        setToast({
-            mostrar: true,
-            mensaje: "Producto registrado correctamente.",
-            tipo: "success"
-        });
-
-        setMostrarModal(false);
-        await cargarProductos();
-
-    } catch (error) {
-        console.error("Error al registrar producto:", error);
-        
-        setToast({
-            mostrar: true,
-            mensaje: error.message || "Error al registrar producto.",
-            tipo: "danger"
-        });
-    }
-};
     // =========================
     // Actualizar producto
     // =========================
 
-const actualizarProducto = async (
-    productoActualizado
-) => {
+    const actualizarProducto = async (
+        productoActualizado
+    ) => {
 
-    try {
+        try {
 
-        console.log(productoActualizado);
-
-        if (!productoActualizado.id_producto) {
-
-            throw new Error(
-                "ID del producto no válido"
+            const id = Number(
+                productoActualizado.id_producto
             );
+
+            const { error } = await supabase
+                .from("productos")
+                .update({
+
+                    nombre_producto:
+                        productoActualizado.nombre_producto,
+
+                    categoria_producto:
+                        productoActualizado.categoria_producto,
+
+                    precio:
+                        parseFloat(
+                            productoActualizado.precio
+                        ),
+
+                    stock:
+                        parseInt(
+                            productoActualizado.stock
+                        )
+                })
+                .eq("id_producto", id);
+
+            if (error) throw error;
+
+            setToast({
+                mostrar: true,
+                mensaje:
+                    "Producto actualizado correctamente.",
+
+                tipo: "success"
+            });
+
+            setMostrarModalEdicion(false);
+
+            await cargarProductos();
+
+        } catch (error) {
+
+            console.log(error);
+
+            setToast({
+                mostrar: true,
+                mensaje:
+                    "Error al actualizar producto.",
+
+                tipo: "danger"
+            });
         }
-
-       const id = Number(
-    productoActualizado.id_producto
-);
-
-const { data, error } = await supabase
-    .from("productos")
-    .update({
-        nombre_producto:
-            productoActualizado.nombre_producto,
-
-        precio:
-            parseFloat(
-                productoActualizado.precio
-            ),
-
-        stock:
-            parseInt(
-                productoActualizado.stock
-            )
-    })
-    .eq("id_producto", id)
-    .select();
-
-console.log(data);
-
-        if (error) throw error;
-
-        setToast({
-            mostrar: true,
-            mensaje:
-                "Producto actualizado correctamente.",
-            tipo: "success"
-        });
-
-        setMostrarModalEdicion(false);
-
-        await cargarProductos();
-
-    } catch (error) {
-
-        console.log(error);
-
-        setToast({
-            mostrar: true,
-            mensaje:
-                error.message ||
-                "Error al actualizar producto.",
-
-            tipo: "danger"
-        });
-    }
-};
+    };
 
     // =========================
     // Eliminar producto
@@ -232,6 +244,7 @@ console.log(data);
                 mostrar: true,
                 mensaje:
                     "Producto eliminado correctamente.",
+
                 tipo: "success"
             });
 
@@ -247,6 +260,7 @@ console.log(data);
                 mostrar: true,
                 mensaje:
                     "Error al eliminar producto.",
+
                 tipo: "danger"
             });
         }
@@ -300,28 +314,61 @@ console.log(data);
 
             <hr />
 
-            {/* Tabla */}
-            <TablaProductos
-                productos={productos}
-                cargando={cargando}
-                recargar={cargarProductos}
+            {/* TABLA EN PC */}
+            <div className="d-none d-md-block">
 
-                onEditar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
-                    );
+                <TablaProductos
+                    productos={productos}
+                    cargando={cargando}
+                    recargar={cargarProductos}
 
-                    setMostrarModalEdicion(true);
-                }}
+                    onEditar={(producto) => {
 
-                onEliminar={(producto) => {
-                    setProductoSeleccionado(
-                        producto
-                    );
+                        setProductoSeleccionado(
+                            producto
+                        );
 
-                    setMostrarModalEliminacion(true);
-                }}
-            />
+                        setMostrarModalEdicion(true);
+                    }}
+
+                    onEliminar={(producto) => {
+
+                        setProductoSeleccionado(
+                            producto
+                        );
+
+                        setMostrarModalEliminacion(true);
+                    }}
+                />
+
+            </div>
+
+            {/* TARJETAS EN CELULAR */}
+            <div className="d-block d-md-none">
+
+                <TarjetaProductos
+                    productos={productos}
+
+                    onEditar={(producto) => {
+
+                        setProductoSeleccionado(
+                            producto
+                        );
+
+                        setMostrarModalEdicion(true);
+                    }}
+
+                    onEliminar={(producto) => {
+
+                        setProductoSeleccionado(
+                            producto
+                        );
+
+                        setMostrarModalEliminacion(true);
+                    }}
+                />
+
+            </div>
 
             {/* Modal Registro */}
             <ModalRegistroProducto
