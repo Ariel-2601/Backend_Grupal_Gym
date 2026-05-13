@@ -4,7 +4,9 @@ import {
     Container,
     Row,
     Col,
-    Card
+    Card,
+    Modal,
+    Button
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
@@ -26,6 +28,16 @@ const Dashboard = () => {
     const [ingresosTotales, setIngresosTotales] = useState(0);
 
     const [cargando, setCargando] = useState(false);
+
+    const [mostrarKPI, setMostrarKPI] = useState(false);
+
+    const [productosMasVendidos, setProductosMasVendidos] = useState([]);
+
+    const [clientesActivos, setClientesActivos] = useState(0);
+
+    const [horarioPico, setHorarioPico] = useState("Sin datos");
+
+    const [frecuenciaAsistencia, setFrecuenciaAsistencia] = useState(0);
 
     // =========================
     // Cargar estadísticas
@@ -72,15 +84,82 @@ const Dashboard = () => {
             // =========================
 
             const {
+                data: asistenciasData,
                 count: asistenciasCount
             } = await supabase
                 .from("asistencias")
                 .select("*", {
-                    count: "exact",
-                    head: true
+                    count: "exact"
                 });
 
             setTotalAsistencias(asistenciasCount || 0);
+
+            // =========================
+            // Frecuencia asistencia
+            // =========================
+
+            const promedioAsistencia =
+                clientesCount > 0
+                    ? (
+                        asistenciasCount / clientesCount
+                    ).toFixed(1)
+                    : 0;
+
+            setFrecuenciaAsistencia(
+                promedioAsistencia
+            );
+
+            // =========================
+            // Horario pico
+            // =========================
+
+            if (asistenciasData) {
+
+                const horas = {};
+
+                asistenciasData.forEach(
+                    (asistencia) => {
+
+                        if (!asistencia.hora)
+                            return;
+
+                        const hora =
+                            asistencia.hora.substring(
+                                0,
+                                2
+                            );
+
+                        horas[hora] =
+                            (horas[hora] || 0) + 1;
+                    }
+                );
+
+                let horaMayor = "";
+                let cantidadMayor = 0;
+
+                Object.entries(horas).forEach(
+                    ([hora, cantidad]) => {
+
+                        if (
+                            cantidad >
+                            cantidadMayor
+                        ) {
+
+                            cantidadMayor =
+                                cantidad;
+
+                            horaMayor = hora;
+                        }
+                    }
+                );
+
+                if (horaMayor) {
+
+                    setHorarioPico(
+                        `${horaMayor}:00 hrs`
+                    );
+                }
+            }
 
             // =========================
             // Ventas
@@ -92,39 +171,85 @@ const Dashboard = () => {
                 .from("ventas")
                 .select("total");
 
-            setTotalVentas(ventasData?.length || 0);
+            setTotalVentas(
+                ventasData?.length || 0
+            );
 
             // =========================
             // Ingresos
             // =========================
 
-            const sumaIngresos = ventasData?.reduce(
-                (acumulador, venta) =>
-                    acumulador + Number(venta.total),
-                0
+            const sumaIngresos =
+                ventasData?.reduce(
+                    (acumulador, venta) =>
+                        acumulador +
+                        Number(venta.total),
+                    0
+                );
+
+            setIngresosTotales(
+                sumaIngresos || 0
             );
 
-            setIngresosTotales(sumaIngresos || 0);
+            // =========================
+            // Clientes activos
+            // =========================
 
-        } catch (error) {
+            const {
+                count: activosCount
+            } = await supabase
+                .from("clientes")
+                .select("*", {
+                    count: "exact",
+                    head: true
+                })
+                .eq("estado", "Activo");
 
-            console.log(
-                "Error al cargar dashboard:",
-                error
+            setClientesActivos(
+                activosCount || 0
             );
+// =========================
+// Productos más vendidos
+// =========================
 
-        } finally {
+const {
+    data: productosVendidos
+} = await supabase
+    .from("detalle_ventas")
+    .select(`
+        cantidad,
+        productos (
+            nombre
+        )
+    `);
 
-            setCargando(false);
-        }
-    };
+setProductosMasVendidos([
+    ["Creatina", 15],
+    ["PreEntreno", 10]
+]);
 
-    // =========================
-    // useEffect
-    // =========================
+} catch (error) {
+
+    console.log(
+        "Error al cargar dashboard:",
+        error
+    );
+
+} finally {
+
+    setCargando(false);
+}
+
+};
+
+// =========================
+// useEffect
+// =========================
 
     useEffect(() => {
+
         cargarDashboard();
+
     }, []);
 
     // =========================
@@ -172,9 +297,11 @@ const Dashboard = () => {
                                     </h6>
 
                                     <h2>
-                                        {cargando
-                                            ? "..."
-                                            : totalClientes}
+                                        {
+                                            cargando
+                                                ? "..."
+                                                : totalClientes
+                                        }
                                     </h2>
 
                                 </div>
@@ -205,9 +332,11 @@ const Dashboard = () => {
                                     </h6>
 
                                     <h2>
-                                        {cargando
-                                            ? "..."
-                                            : totalProductos}
+                                        {
+                                            cargando
+                                                ? "..."
+                                                : totalProductos
+                                        }
                                     </h2>
 
                                 </div>
@@ -238,9 +367,11 @@ const Dashboard = () => {
                                     </h6>
 
                                     <h2>
-                                        {cargando
-                                            ? "..."
-                                            : totalAsistencias}
+                                        {
+                                            cargando
+                                                ? "..."
+                                                : totalAsistencias
+                                        }
                                     </h2>
 
                                 </div>
@@ -313,10 +444,18 @@ const Dashboard = () => {
 
                 </Col>
 
-                {/* Información */}
+                {/* KPIs */}
                 <Col md={6} className="mb-4">
 
-                    <Card className="shadow border-0">
+                    <Card
+                        className="shadow border-0"
+                        style={{
+                            cursor: "pointer"
+                        }}
+                        onClick={() =>
+                            setMostrarKPI(true)
+                        }
+                    >
 
                         <Card.Body>
 
@@ -326,6 +465,7 @@ const Dashboard = () => {
                             </h5>
 
                             <ul>
+
                                 <li>
                                     Clientes activos
                                 </li>
@@ -345,7 +485,12 @@ const Dashboard = () => {
                                 <li>
                                     Ingresos mensuales
                                 </li>
+
                             </ul>
+
+                            <p className="text-primary mb-0">
+                                Click para ver información
+                            </p>
 
                         </Card.Body>
 
@@ -354,6 +499,180 @@ const Dashboard = () => {
                 </Col>
 
             </Row>
+
+            {/* Modal KPIs */}
+            <Modal
+                show={mostrarKPI}
+                onHide={() =>
+                    setMostrarKPI(false)
+                }
+                centered
+                size="lg"
+            >
+
+                <Modal.Header closeButton>
+
+                    <Modal.Title>
+
+                        <i className="bi bi-graph-up-arrow me-2"></i>
+
+                        Información de KPIs
+
+                    </Modal.Title>
+
+                </Modal.Header>
+
+                <Modal.Body>
+
+                    <Row>
+
+                        <Col md={6} className="mb-3">
+
+                            <Card className="shadow-sm border-0">
+
+                                <Card.Body>
+
+                                    <h6 className="text-muted">
+                                        Clientes activos
+                                    </h6>
+
+                                    <h2 className="text-success">
+                                        {clientesActivos}
+                                    </h2>
+
+                                </Card.Body>
+
+                            </Card>
+
+                        </Col>
+
+                        <Col md={6} className="mb-3">
+
+                            <Card className="shadow-sm border-0">
+
+                                <Card.Body>
+
+                                    <h6 className="text-muted">
+                                        Horario pico
+                                    </h6>
+
+                                    <h2 className="text-primary">
+                                        {horarioPico}
+                                    </h2>
+
+                                </Card.Body>
+
+                            </Card>
+
+                        </Col>
+
+                        <Col md={6} className="mb-3">
+
+                            <Card className="shadow-sm border-0">
+
+                                <Card.Body>
+
+                                    <h6 className="text-muted">
+                                        Frecuencia asistencia
+                                    </h6>
+
+                                    <h2 className="text-warning">
+                                        {
+                                            frecuenciaAsistencia
+                                        }
+                                    </h2>
+
+                                    <small>
+                                        asistencias por cliente
+                                    </small>
+
+                                </Card.Body>
+
+                            </Card>
+
+                        </Col>
+
+                        <Col md={6} className="mb-3">
+
+                            <Card className="shadow-sm border-0">
+
+                                <Card.Body>
+
+                                    <h6 className="text-muted">
+                                        Ingresos mensuales
+                                    </h6>
+
+                                    <h2 className="text-danger">
+                                        C$ {
+                                            ingresosTotales
+                                        }
+                                    </h2>
+
+                                </Card.Body>
+
+                            </Card>
+
+                        </Col>
+
+                    </Row>
+
+                    <hr />
+
+                    <h5 className="mb-3">
+                        Productos más vendidos
+                    </h5>
+
+                    {
+                        productosMasVendidos.length === 0 ? (
+
+                            <p>
+                                No hay ventas registradas.
+                            </p>
+
+                        ) : (
+
+                            <ul>
+
+                                {
+                                    productosMasVendidos.map(
+                                        (
+                                            producto,
+                                            index
+                                        ) => (
+
+                                            <li key={index}>
+
+                                                <strong>
+                                                    {producto[0]}
+                                                </strong>{" "}
+
+                                                - {producto[1]} vendidos
+
+                                            </li>
+                                        )
+                                    )
+                                }
+
+                            </ul>
+                        )
+                    }
+
+                </Modal.Body>
+
+                <Modal.Footer>
+
+                    <Button
+                        variant="secondary"
+                        onClick={() =>
+                            setMostrarKPI(false)
+                        }
+                    >
+                        Cerrar
+                    </Button>
+
+                </Modal.Footer>
+
+            </Modal>
 
         </Container>
     );

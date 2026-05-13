@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from "react";
 
-import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
 
@@ -13,6 +12,8 @@ import TablaClientes from "../components/clientes/TablaClientes";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
 import TarjetaClientes from "../components/clientes/TarjetaClientes";
+import { Container, Row, Col, Button, Alert } from "react-bootstrap";
+import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 
 const Clientes = () => {
   // =========================
@@ -30,6 +31,10 @@ const Clientes = () => {
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
   const [cargando, setCargando] = useState(false);
+
+  const [textoBusqueda, setTextoBusqueda] = useState("");
+
+const [clientesFiltrados, setClientesFiltrados] = useState([]);
 
   // =========================
   // Toast
@@ -56,7 +61,8 @@ const Clientes = () => {
 
       if (error) throw error;
 
-      setClientes(data || []);
+setClientes(data || []);
+setClientesFiltrados(data || []);
     } catch (error) {
       console.log("Error al cargar clientes:", error);
 
@@ -193,6 +199,24 @@ const Clientes = () => {
   };
 
   // =========================
+// Buscar clientes
+// =========================
+
+const handleBusqueda = (e) => {
+  const texto = e.target.value;
+
+  setTextoBusqueda(texto);
+
+  const resultados = clientes.filter((cliente) =>
+    cliente.nombres.toLowerCase().includes(texto.toLowerCase()) ||
+    cliente.apellidos.toLowerCase().includes(texto.toLowerCase()) ||
+    cliente.correo.toLowerCase().includes(texto.toLowerCase())
+  );
+
+  setClientesFiltrados(resultados);
+};
+
+  // =========================
   // useEffect
   // =========================
 
@@ -225,10 +249,23 @@ const Clientes = () => {
       </Row>
 
       <hr />
+
+      <CuadroBusquedas
+  textoBusqueda={textoBusqueda}
+  onChange={handleBusqueda}
+/>
+
+{
+  clientesFiltrados.length === 0 && (
+    <Alert variant="danger">
+      No se encontraron clientes.
+    </Alert>
+  )
+}
 {/* TARJETAS → SOLO EN MÓVIL */}
 <div className="d-block d-lg-none">
   <TarjetaClientes
-    clientes={clientes}
+    clientes={clientesFiltrados}
     onEditar={(cliente) => {
       setClienteSeleccionado(cliente);
       setMostrarModalEdicion(true);
@@ -243,7 +280,7 @@ const Clientes = () => {
 {/* TABLA → SOLO EN PANTALLAS GRANDES */}
 <div className="d-none d-lg-block">
   <TablaClientes
-    clientes={clientes}
+  clientes={clientesFiltrados}
     cargando={cargando}
     onEditar={(cliente) => {
       setClienteSeleccionado(cliente);

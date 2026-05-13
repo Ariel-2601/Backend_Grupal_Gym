@@ -1,11 +1,16 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import React, { useState, useEffect } from "react";
+
+import React, {
+    useState,
+    useEffect
+} from "react";
 
 import {
     Container,
     Row,
     Col,
-    Button
+    Button,
+    Alert
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
@@ -15,6 +20,9 @@ import ModalEdicionVenta from "../components/ventas/ModalEdicionVenta";
 import ModalEliminacionVenta from "../components/ventas/ModalEliminacionVenta";
 
 import TablaVentas from "../components/ventas/TablaVentas";
+import TarjetaVentas from "../components/ventas/TarjetaVenta";
+
+import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
 
@@ -24,17 +32,39 @@ const Ventas = () => {
     // Estados
     // =========================
 
-    const [mostrarModal, setMostrarModal] = useState(false);
+    const [mostrarModal, setMostrarModal] =
+        useState(false);
 
-    const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+    const [
+        mostrarModalEdicion,
+        setMostrarModalEdicion
+    ] = useState(false);
 
-    const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
+    const [
+        mostrarModalEliminacion,
+        setMostrarModalEliminacion
+    ] = useState(false);
 
-    const [ventas, setVentas] = useState([]);
+    const [ventas, setVentas] =
+        useState([]);
 
-    const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
+    const [
+        ventasFiltradas,
+        setVentasFiltradas
+    ] = useState([]);
 
-    const [cargando, setCargando] = useState(false);
+    const [
+        textoBusqueda,
+        setTextoBusqueda
+    ] = useState("");
+
+    const [
+        ventaSeleccionada,
+        setVentaSeleccionada
+    ] = useState(null);
+
+    const [cargando, setCargando] =
+        useState(false);
 
     // =========================
     // Toast
@@ -56,22 +86,37 @@ const Ventas = () => {
 
             setCargando(true);
 
-            const { data, error } = await supabase
+            const {
+                data,
+                error
+            } = await supabase
                 .from("ventas")
                 .select(`
                     *,
                     clientes (
                         nombres,
                         apellidos
+                    ),
+                    detalle_ventas (
+                        cantidad,
+                        precio,
+                        productos (
+                            nombre_producto,
+                            categoria_producto
+                        )
                     )
                 `)
-                .order("id_venta", {
-                    ascending: true
-                });
+                .order(
+                    "id_venta",
+                    {
+                        ascending: true
+                    }
+                );
 
             if (error) throw error;
 
             setVentas(data || []);
+            setVentasFiltradas(data || []);
 
         } catch (error) {
 
@@ -82,7 +127,8 @@ const Ventas = () => {
 
             setToast({
                 mostrar: true,
-                mensaje: "Error al cargar ventas.",
+                mensaje:
+                    "Error al cargar ventas.",
                 tipo: "danger"
             });
 
@@ -96,38 +142,44 @@ const Ventas = () => {
     // Registrar venta
     // =========================
 
-    const agregarVenta = async (nuevaVenta) => {
+    const agregarVenta = async (
+        nuevaVenta
+    ) => {
 
         try {
 
-            if (!nuevaVenta.id_cliente) {
+            if (
+                !nuevaVenta.id_cliente
+            ) {
 
                 setToast({
                     mostrar: true,
-                    mensaje: "Debe seleccionar un cliente.",
+                    mensaje:
+                        "Debe seleccionar un cliente.",
                     tipo: "warning"
                 });
 
                 return;
             }
 
-            const { error } = await supabase
-                .from("ventas")
-                .insert([
-                    {
-                        id_cliente:
-                            nuevaVenta.id_cliente,
+            const { error } =
+                await supabase
+                    .from("ventas")
+                    .insert([
+                        {
+                            id_cliente:
+                                nuevaVenta.id_cliente,
 
-                        total:
-                            nuevaVenta.total,
+                            total:
+                                nuevaVenta.total,
 
-                        metodo_pago:
-                            nuevaVenta.metodo_pago,
+                            metodo_pago:
+                                nuevaVenta.metodo_pago,
 
-                        fecha_venta:
-                            nuevaVenta.fecha_venta
-                    }
-                ]);
+                            fecha_venta:
+                                nuevaVenta.fecha_venta
+                        }
+                    ]);
 
             if (error) throw error;
 
@@ -144,7 +196,10 @@ const Ventas = () => {
 
         } catch (error) {
 
-            console.log("Error al registrar:", error);
+            console.log(
+                "Error al registrar:",
+                error
+            );
 
             setToast({
                 mostrar: true,
@@ -159,58 +214,78 @@ const Ventas = () => {
     // Actualizar venta
     // =========================
 
- const actualizarVenta = async (ventaActualizada) => {
+    const actualizarVenta = async (
+        ventaActualizada
+    ) => {
 
-    try {
+        try {
 
-        const { error } = await supabase
-            .from("ventas")
-            .update({
-                id_cliente: ventaActualizada.id_cliente,
-                total: ventaActualizada.total,
-                metodo_pago: ventaActualizada.metodo_pago,
-                fecha_venta: ventaActualizada.fecha_venta
-            })
-            .eq(
-                "id_venta",
-                ventaActualizada.id_venta
-            );
+            const { error } =
+                await supabase
+                    .from("ventas")
+                    .update({
 
-        if (error) throw error;
+                        id_cliente:
+                            ventaActualizada.id_cliente,
 
-        setToast({
-            mostrar: true,
-            mensaje: "Venta actualizada correctamente.",
-            tipo: "success"
-        });
+                        total:
+                            ventaActualizada.total,
 
-        setMostrarModalEdicion(false);
+                        metodo_pago:
+                            ventaActualizada.metodo_pago,
 
-        await cargarVentas();
+                        fecha_venta:
+                            ventaActualizada.fecha_venta
+                    })
+                    .eq(
+                        "id_venta",
+                        ventaActualizada.id_venta
+                    );
 
-    } catch (error) {
+            if (error) throw error;
 
-        console.log(error);
+            setToast({
+                mostrar: true,
+                mensaje:
+                    "Venta actualizada correctamente.",
+                tipo: "success"
+            });
 
-        setToast({
-            mostrar: true,
-            mensaje: "Error al actualizar venta.",
-            tipo: "danger"
-        });
-    }
-};
+            setMostrarModalEdicion(false);
+
+            await cargarVentas();
+
+        } catch (error) {
+
+            console.log(error);
+
+            setToast({
+                mostrar: true,
+                mensaje:
+                    "Error al actualizar venta.",
+                tipo: "danger"
+            });
+        }
+    };
+
     // =========================
     // Eliminar venta
     // =========================
 
-    const eliminarVenta = async (id) => {
+    const eliminarVenta = async (
+        id
+    ) => {
 
         try {
 
-            const { error } = await supabase
-                .from("ventas")
-                .delete()
-                .eq("id_venta", id);
+            const { error } =
+                await supabase
+                    .from("ventas")
+                    .delete()
+                    .eq(
+                        "id_venta",
+                        id
+                    );
 
             if (error) throw error;
 
@@ -221,7 +296,9 @@ const Ventas = () => {
                 tipo: "success"
             });
 
-            setMostrarModalEliminacion(false);
+            setMostrarModalEliminacion(
+                false
+            );
 
             await cargarVentas();
 
@@ -239,11 +316,72 @@ const Ventas = () => {
     };
 
     // =========================
+    // Buscar ventas
+    // =========================
+
+    const handleBusqueda = (e) => {
+
+        const texto = e.target.value;
+
+        setTextoBusqueda(texto);
+
+        const resultados =
+            ventas.filter(
+                (venta) =>
+
+                    venta.metodo_pago
+                        ?.toLowerCase()
+                        .includes(
+                            texto.toLowerCase()
+                        )
+
+                    ||
+
+                    venta.total
+                        ?.toString()
+                        .includes(texto)
+
+                    ||
+
+                    venta.clientes?.nombres
+                        ?.toLowerCase()
+                        .includes(
+                            texto.toLowerCase()
+                        )
+
+                    ||
+
+                    venta.clientes?.apellidos
+                        ?.toLowerCase()
+                        .includes(
+                            texto.toLowerCase()
+                        )
+
+                    ||
+
+                    venta.detalle_ventas?.some(
+                        (detalle) =>
+                            detalle.productos?.nombre_producto
+                                ?.toLowerCase()
+                                .includes(
+                                    texto.toLowerCase()
+                                )
+                    )
+            );
+
+        setVentasFiltradas(
+            resultados
+        );
+    };
+
+    // =========================
     // useEffect
     // =========================
 
     useEffect(() => {
+
         cargarVentas();
+
     }, []);
 
     // =========================
@@ -260,24 +398,36 @@ const Ventas = () => {
                 <Col xs={9}>
 
                     <h3 className="mb-0">
+
                         <i className="bi bi-cart-fill me-2"></i>
+
                         Ventas
+
                     </h3>
 
                 </Col>
 
-                <Col xs={3} className="text-end">
+                <Col
+                    xs={3}
+                    className="text-end"
+                >
 
                     <Button
                         onClick={() =>
-                            setMostrarModal(true)
+                            setMostrarModal(
+                                true
+                            )
                         }
                     >
+
                         <i className="bi bi-plus-lg"></i>
 
                         <span className="ms-2 d-none d-sm-inline">
+
                             Nueva Venta
+
                         </span>
+
                     </Button>
 
                 </Col>
@@ -286,48 +436,139 @@ const Ventas = () => {
 
             <hr />
 
-            {/* Tabla */}
-            <TablaVentas
-                ventas={ventas}
-                cargando={cargando}
-                recargar={cargarVentas}
-
-                onEditar={(venta) => {
-                    setVentaSeleccionada(venta);
-
-                    setMostrarModalEdicion(true);
-                }}
-
-                onEliminar={(venta) => {
-                    setVentaSeleccionada(venta);
-
-                    setMostrarModalEliminacion(true);
-                }}
+            {/* BUSCADOR */}
+            <CuadroBusquedas
+                textoBusqueda={
+                    textoBusqueda
+                }
+                onChange={
+                    handleBusqueda
+                }
             />
+
+            {/* ALERTA */}
+            {
+                ventasFiltradas.length === 0 && (
+
+                    <Alert variant="danger">
+
+                        No se encontraron ventas.
+
+                    </Alert>
+                )
+            }
+
+            {/* TABLA EN PC */}
+            <div className="d-none d-md-block">
+
+                <TablaVentas
+                    ventas={
+                        ventasFiltradas
+                    }
+                    cargando={cargando}
+                    recargar={
+                        cargarVentas
+                    }
+
+                    onEditar={(venta) => {
+
+                        setVentaSeleccionada(
+                            venta
+                        );
+
+                        setMostrarModalEdicion(
+                            true
+                        );
+                    }}
+
+                    onEliminar={(venta) => {
+
+                        setVentaSeleccionada(
+                            venta
+                        );
+
+                        setMostrarModalEliminacion(
+                            true
+                        );
+                    }}
+                />
+
+            </div>
+
+            {/* TARJETAS EN CELULAR */}
+            <div className="d-block d-md-none">
+
+                <TarjetaVentas
+                    ventas={
+                        ventasFiltradas
+                    }
+
+                    onEditar={(venta) => {
+
+                        setVentaSeleccionada(
+                            venta
+                        );
+
+                        setMostrarModalEdicion(
+                            true
+                        );
+                    }}
+
+                    onEliminar={(venta) => {
+
+                        setVentaSeleccionada(
+                            venta
+                        );
+
+                        setMostrarModalEliminacion(
+                            true
+                        );
+                    }}
+                />
+
+            </div>
 
             {/* Modal Registro */}
             <ModalRegistroVenta
                 mostrar={mostrarModal}
-                setMostrar={setMostrarModal}
-                agregarVenta={agregarVenta}
+                setMostrar={
+                    setMostrarModal
+                }
+                agregarVenta={
+                    agregarVenta
+                }
             />
 
             {/* Modal Edición */}
             <ModalEdicionVenta
-                mostrar={mostrarModalEdicion}
-                setMostrar={setMostrarModalEdicion}
-                venta={ventaSeleccionada}
-                actualizarVenta={actualizarVenta}
+                mostrar={
+                    mostrarModalEdicion
+                }
+                setMostrar={
+                    setMostrarModalEdicion
+                }
+                venta={
+                    ventaSeleccionada
+                }
+                actualizarVenta={
+                    actualizarVenta
+                }
             />
 
             {/* Modal Eliminación */}
             <ModalEliminacionVenta
-                mostrar={mostrarModalEliminacion}
+                mostrar={
+                    mostrarModalEliminacion
+                }
                 setMostrar={
                     setMostrarModalEliminacion
                 }
-                venta={ventaSeleccionada}
-                eliminarVenta={eliminarVenta}
+                venta={
+                    ventaSeleccionada
+                }
+                eliminarVenta={
+                    eliminarVenta
+                }
             />
 
             {/* Toast */}

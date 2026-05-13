@@ -36,6 +36,7 @@ const TablaVentas = ({
                 <tr>
                     <th>ID</th>
                     <th>Cliente</th>
+                    <th>Productos</th>
                     <th>Total</th>
                     <th>Método Pago</th>
                     <th>Fecha</th>
@@ -50,7 +51,7 @@ const TablaVentas = ({
 
                     <tr>
                         <td
-                            colSpan="6"
+                            colSpan="7"
                             className="text-center"
                         >
                             No hay ventas registradas
@@ -65,12 +66,38 @@ const TablaVentas = ({
 
                             <td>{venta.id_venta}</td>
 
+                         <td className="fw-bold">
+
+    $
+    {parseFloat(
+        venta.total || 0
+    ).toFixed(2)}
+
+</td>
+
+                            {/* PRODUCTOS */}
                             <td>
+
                                 {
-                                    venta.clientes
-                                        ? `${venta.clientes.nombres} ${venta.clientes.apellidos}`
-                                        : "Sin cliente"
+                                    venta.detalle_ventas?.length > 0
+                                        ? venta.detalle_ventas.map(
+                                            (detalle, index) => (
+
+                                                <div key={index}>
+
+                                                    • {
+                                                        detalle.productos?.nombre_producto
+                                                    }
+
+                                                    {" "}
+                                                    (x{detalle.cantidad})
+
+                                                </div>
+                                            )
+                                        )
+                                        : "Sin productos"
                                 }
+
                             </td>
 
                             <td>
