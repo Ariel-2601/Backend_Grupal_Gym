@@ -32,44 +32,19 @@ const Ventas = () => {
     // Estados
     // =========================
 
-    const [mostrarModal, setMostrarModal] =
-        useState(false);
+    const [mostrarModal, setMostrarModal] = useState(false);
+    const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+    const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
 
-    const [
-        mostrarModalEdicion,
-        setMostrarModalEdicion
-    ] = useState(false);
-
-    const [
-        mostrarModalEliminacion,
-        setMostrarModalEliminacion
-    ] = useState(false);
-
-    const [ventas, setVentas] =
-        useState([]);
-
-    const [
-        ventasFiltradas,
-        setVentasFiltradas
-    ] = useState([]);
-
-    const [
-        textoBusqueda,
-        setTextoBusqueda
-    ] = useState("");
-
-    const [
-        ventaSeleccionada,
-        setVentaSeleccionada
-    ] = useState(null);
-
-    const [cargando, setCargando] =
-        useState(false);
+    const [ventas, setVentas] = useState([]);
+    const [ventasFiltradas, setVentasFiltradas] = useState([]);
+    const [textoBusqueda, setTextoBusqueda] = useState("");
+    const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
+    const [cargando, setCargando] = useState(false);
 
     // =========================
     // Toast
     // =========================
-
     const [toast, setToast] = useState({
         mostrar: false,
         mensaje: "",
@@ -79,17 +54,11 @@ const Ventas = () => {
     // =========================
     // Cargar ventas
     // =========================
-
     const cargarVentas = async () => {
-
         try {
-
             setCargando(true);
 
-            const {
-                data,
-                error
-            } = await supabase
+            const { data, error } = await supabase
                 .from("ventas")
                 .select(`
                     *,
@@ -99,19 +68,12 @@ const Ventas = () => {
                     ),
                     detalle_ventas (
                         cantidad,
-                        precio,
                         productos (
-                            nombre_producto,
-                            categoria_producto
+                            nombre_producto
                         )
                     )
                 `)
-                .order(
-                    "id_venta",
-                    {
-                        ascending: true
-                    }
-                );
+                .order("fecha_venta", { ascending: false }); // Más recientes primero
 
             if (error) throw error;
 
@@ -119,197 +81,123 @@ const Ventas = () => {
             setVentasFiltradas(data || []);
 
         } catch (error) {
-
-            console.log(
-                "Error al cargar ventas:",
-                error
-            );
-
+            console.log("Error al cargar ventas:", error);
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al cargar ventas.",
+                mensaje: "Error al cargar ventas.",
                 tipo: "danger"
             });
-
         } finally {
-
             setCargando(false);
         }
     };
 
     // =========================
-    // Registrar venta
+    // Registrar Venta
     // =========================
-
-    const agregarVenta = async (
-        nuevaVenta
-    ) => {
-
+    const agregarVenta = async (nuevaVenta) => {
         try {
-
-            if (
-                !nuevaVenta.id_cliente
-            ) {
-
+            if (!nuevaVenta.id_cliente) {
                 setToast({
                     mostrar: true,
-                    mensaje:
-                        "Debe seleccionar un cliente.",
+                    mensaje: "Debe seleccionar un cliente.",
                     tipo: "warning"
                 });
-
                 return;
             }
 
-            const { error } =
-                await supabase
-                    .from("ventas")
-                    .insert([
-                        {
-                            id_cliente:
-                                nuevaVenta.id_cliente,
-
-                            total:
-                                nuevaVenta.total,
-
-                            metodo_pago:
-                                nuevaVenta.metodo_pago,
-
-                            fecha_venta:
-                                nuevaVenta.fecha_venta
-                        }
-                    ]);
+            const { error } = await supabase
+                .from("ventas")
+                .insert([{
+                    id_cliente: nuevaVenta.id_cliente,
+                    total: nuevaVenta.total,
+                    metodo_pago: nuevaVenta.metodo_pago,
+                    fecha_venta: nuevaVenta.fecha_venta || new Date().toISOString().split('T')[0]
+                }]);
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Venta registrada correctamente.",
+                mensaje: "Venta registrada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModal(false);
-
-            await cargarVentas();
+            await cargarVentas();   // Recargar para ver el cliente
 
         } catch (error) {
-
-            console.log(
-                "Error al registrar:",
-                error
-            );
-
+            console.log("Error al registrar venta:", error);
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al registrar venta.",
+                mensaje: "Error al registrar venta.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Actualizar venta
+    // Actualizar Venta
     // =========================
-
-    const actualizarVenta = async (
-        ventaActualizada
-    ) => {
-
+    const actualizarVenta = async (ventaActualizada) => {
         try {
-
-            const { error } =
-                await supabase
-                    .from("ventas")
-                    .update({
-
-                        id_cliente:
-                            ventaActualizada.id_cliente,
-
-                        total:
-                            ventaActualizada.total,
-
-                        metodo_pago:
-                            ventaActualizada.metodo_pago,
-
-                        fecha_venta:
-                            ventaActualizada.fecha_venta
-                    })
-                    .eq(
-                        "id_venta",
-                        ventaActualizada.id_venta
-                    );
+            const { error } = await supabase
+                .from("ventas")
+                .update({
+                    id_cliente: ventaActualizada.id_cliente,
+                    total: ventaActualizada.total,
+                    metodo_pago: ventaActualizada.metodo_pago,
+                    fecha_venta: ventaActualizada.fecha_venta
+                })
+                .eq("id_venta", ventaActualizada.id_venta);
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Venta actualizada correctamente.",
+                mensaje: "Venta actualizada correctamente.",
                 tipo: "success"
             });
 
             setMostrarModalEdicion(false);
-
             await cargarVentas();
 
         } catch (error) {
-
             console.log(error);
-
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al actualizar venta.",
+                mensaje: "Error al actualizar venta.",
                 tipo: "danger"
             });
         }
     };
 
     // =========================
-    // Eliminar venta
+    // Eliminar Venta
     // =========================
-
-    const eliminarVenta = async (
-        id
-    ) => {
-
+    const eliminarVenta = async (id) => {
         try {
-
-            const { error } =
-                await supabase
-                    .from("ventas")
-                    .delete()
-                    .eq(
-                        "id_venta",
-                        id
-                    );
+            const { error } = await supabase
+                .from("ventas")
+                .delete()
+                .eq("id_venta", id);
 
             if (error) throw error;
 
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Venta eliminada correctamente.",
+                mensaje: "Venta eliminada correctamente.",
                 tipo: "success"
             });
 
-            setMostrarModalEliminacion(
-                false
-            );
-
+            setMostrarModalEliminacion(false);
             await cargarVentas();
 
         } catch (error) {
-
             console.log(error);
-
             setToast({
                 mostrar: true,
-                mensaje:
-                    "Error al eliminar venta.",
+                mensaje: "Error al eliminar venta.",
                 tipo: "danger"
             });
         }
@@ -318,272 +206,123 @@ const Ventas = () => {
     // =========================
     // Buscar ventas
     // =========================
-
     const handleBusqueda = (e) => {
-
-        const texto = e.target.value;
-
+        const texto = e.target.value.toLowerCase();
         setTextoBusqueda(texto);
 
-        const resultados =
-            ventas.filter(
-                (venta) =>
-
-                    venta.metodo_pago
-                        ?.toLowerCase()
-                        .includes(
-                            texto.toLowerCase()
-                        )
-
-                    ||
-
-                    venta.total
-                        ?.toString()
-                        .includes(texto)
-
-                    ||
-
-                    venta.clientes?.nombres
-                        ?.toLowerCase()
-                        .includes(
-                            texto.toLowerCase()
-                        )
-
-                    ||
-
-                    venta.clientes?.apellidos
-                        ?.toLowerCase()
-                        .includes(
-                            texto.toLowerCase()
-                        )
-
-                    ||
-
-                    venta.detalle_ventas?.some(
-                        (detalle) =>
-                            detalle.productos?.nombre_producto
-                                ?.toLowerCase()
-                                .includes(
-                                    texto.toLowerCase()
-                                )
-                    )
+        const resultados = ventas.filter((venta) => {
+            const nombreCliente = `${venta.clientes?.nombres || ''} ${venta.clientes?.apellidos || ''}`.toLowerCase();
+            
+            return (
+                venta.metodo_pago?.toLowerCase().includes(texto) ||
+                venta.total?.toString().includes(texto) ||
+                nombreCliente.includes(texto) ||
+                venta.detalle_ventas?.some(detalle =>
+                    detalle.productos?.nombre_producto?.toLowerCase().includes(texto)
+                )
             );
+        });
 
-        setVentasFiltradas(
-            resultados
-        );
+        setVentasFiltradas(resultados);
     };
 
     // =========================
     // useEffect
     // =========================
-
     useEffect(() => {
-
         cargarVentas();
-
     }, []);
 
     // =========================
     // Render
     // =========================
-
     return (
-
         <Container className="mt-3">
-
             {/* Encabezado */}
             <Row className="align-items-center mb-3">
-
                 <Col xs={9}>
-
                     <h3 className="mb-0">
-
                         <i className="bi bi-cart-fill me-2"></i>
-
                         Ventas
-
                     </h3>
-
                 </Col>
-
-                <Col
-                    xs={3}
-                    className="text-end"
-                >
-
-                    <Button
-                        onClick={() =>
-                            setMostrarModal(
-                                true
-                            )
-                        }
-                    >
-
+                <Col xs={3} className="text-end">
+                    <Button onClick={() => setMostrarModal(true)}>
                         <i className="bi bi-plus-lg"></i>
-
-                        <span className="ms-2 d-none d-sm-inline">
-
-                            Nueva Venta
-
-                        </span>
-
+                        <span className="ms-2 d-none d-sm-inline">Nueva Venta</span>
                     </Button>
-
                 </Col>
-
             </Row>
 
             <hr />
 
-            {/* BUSCADOR */}
             <CuadroBusquedas
-                textoBusqueda={
-                    textoBusqueda
-                }
-                onChange={
-                    handleBusqueda
-                }
+                textoBusqueda={textoBusqueda}
+                onChange={handleBusqueda}
             />
 
-            {/* ALERTA */}
-            {
-                ventasFiltradas.length === 0 && (
+            {ventasFiltradas.length === 0 && (
+                <Alert variant="warning">No se encontraron ventas.</Alert>
+            )}
 
-                    <Alert variant="danger">
-
-                        No se encontraron ventas.
-
-                    </Alert>
-                )
-            }
-
-            {/* TABLA EN PC */}
+            {/* Tabla en PC */}
             <div className="d-none d-md-block">
-
                 <TablaVentas
-                    ventas={
-                        ventasFiltradas
-                    }
+                    ventas={ventasFiltradas}
                     cargando={cargando}
-                    recargar={
-                        cargarVentas
-                    }
-
                     onEditar={(venta) => {
-
-                        setVentaSeleccionada(
-                            venta
-                        );
-
-                        setMostrarModalEdicion(
-                            true
-                        );
+                        setVentaSeleccionada(venta);
+                        setMostrarModalEdicion(true);
                     }}
-
                     onEliminar={(venta) => {
-
-                        setVentaSeleccionada(
-                            venta
-                        );
-
-                        setMostrarModalEliminacion(
-                            true
-                        );
+                        setVentaSeleccionada(venta);
+                        setMostrarModalEliminacion(true);
                     }}
                 />
-
             </div>
 
-            {/* TARJETAS EN CELULAR */}
+            {/* Tarjetas en Celular */}
             <div className="d-block d-md-none">
-
                 <TarjetaVentas
-                    ventas={
-                        ventasFiltradas
-                    }
-
+                    ventas={ventasFiltradas}
                     onEditar={(venta) => {
-
-                        setVentaSeleccionada(
-                            venta
-                        );
-
-                        setMostrarModalEdicion(
-                            true
-                        );
+                        setVentaSeleccionada(venta);
+                        setMostrarModalEdicion(true);
                     }}
-
                     onEliminar={(venta) => {
-
-                        setVentaSeleccionada(
-                            venta
-                        );
-
-                        setMostrarModalEliminacion(
-                            true
-                        );
+                        setVentaSeleccionada(venta);
+                        setMostrarModalEliminacion(true);
                     }}
                 />
-
             </div>
 
-            {/* Modal Registro */}
+            {/* Modales */}
             <ModalRegistroVenta
                 mostrar={mostrarModal}
-                setMostrar={
-                    setMostrarModal
-                }
-                agregarVenta={
-                    agregarVenta
-                }
+                setMostrar={setMostrarModal}
+                agregarVenta={agregarVenta}
             />
 
-            {/* Modal Edición */}
             <ModalEdicionVenta
-                mostrar={
-                    mostrarModalEdicion
-                }
-                setMostrar={
-                    setMostrarModalEdicion
-                }
-                venta={
-                    ventaSeleccionada
-                }
-                actualizarVenta={
-                    actualizarVenta
-                }
+                mostrar={mostrarModalEdicion}
+                setMostrar={setMostrarModalEdicion}
+                venta={ventaSeleccionada}
+                actualizarVenta={actualizarVenta}
             />
 
-            {/* Modal Eliminación */}
             <ModalEliminacionVenta
-                mostrar={
-                    mostrarModalEliminacion
-                }
-                setMostrar={
-                    setMostrarModalEliminacion
-                }
-                venta={
-                    ventaSeleccionada
-                }
-                eliminarVenta={
-                    eliminarVenta
-                }
+                mostrar={mostrarModalEliminacion}
+                setMostrar={setMostrarModalEliminacion}
+                venta={ventaSeleccionada}
+                eliminarVenta={eliminarVenta}
             />
 
-            {/* Toast */}
             <NotificacionOperacion
                 mostrar={toast.mostrar}
                 mensaje={toast.mensaje}
                 tipo={toast.tipo}
-                onCerrar={() =>
-                    setToast({
-                        ...toast,
-                        mostrar: false
-                    })
-                }
+                onCerrar={() => setToast({ ...toast, mostrar: false })}
             />
-
         </Container>
     );
 };
