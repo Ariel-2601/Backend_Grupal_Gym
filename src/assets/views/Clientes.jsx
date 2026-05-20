@@ -14,6 +14,8 @@ import NotificacionOperacion from "../components/NotificacionOperacion";
 import TarjetaClientes from "../components/clientes/TarjetaClientes";
 import { Container, Row, Col, Button, Alert } from "react-bootstrap";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Clientes = () => {
   // =========================
@@ -165,6 +167,38 @@ setClientesFiltrados(data || []);
     }
   };
 
+const generarPDFCliente = (cliente) => {
+
+  const doc = new jsPDF();
+
+  // Título
+  doc.setFontSize(18);
+  doc.text("Reporte de Cliente", 14, 20);
+
+  // Línea decorativa
+  doc.line(14, 25, 195, 25);
+
+  // Tabla información
+  autoTable(doc, {
+    startY: 35,
+    head: [["Campo", "Valor"]],
+    body: [
+      ["ID", cliente.id_cliente],
+      ["Nombres", cliente.nombres],
+      ["Apellidos", cliente.apellidos],
+      ["Edad", cliente.edad],
+      ["Teléfono", cliente.telefono],
+      ["Correo", cliente.correo],
+      ["Estado", cliente.estado],
+    ],
+  });
+
+  // Descargar PDF
+  doc.save(`cliente_${cliente.id_cliente}.pdf`);
+};
+
+
+
   // =========================
   // Eliminar cliente
   // =========================
@@ -215,6 +249,8 @@ const handleBusqueda = (e) => {
 
   setClientesFiltrados(resultados);
 };
+
+
 
   // =========================
   // useEffect
@@ -277,20 +313,23 @@ const handleBusqueda = (e) => {
   />
 </div>
 
+
+
 {/* TABLA → SOLO EN PANTALLAS GRANDES */}
 <div className="d-none d-lg-block">
-  <TablaClientes
+<TablaClientes
   clientes={clientesFiltrados}
-    cargando={cargando}
-    onEditar={(cliente) => {
-      setClienteSeleccionado(cliente);
-      setMostrarModalEdicion(true);
-    }}
-    onEliminar={(cliente) => {
-      setClienteSeleccionado(cliente);
-      setMostrarModalEliminacion(true);
-    }}
-  />
+  cargando={cargando}
+  generarPDFCliente={generarPDFCliente}
+  onEditar={(cliente) => {
+    setClienteSeleccionado(cliente);
+    setMostrarModalEdicion(true);
+  }}
+  onEliminar={(cliente) => {
+    setClienteSeleccionado(cliente);
+    setMostrarModalEliminacion(true);
+  }}
+/>
 </div>
       {/* Modal Registro */}
       <ModalRegistroCliente

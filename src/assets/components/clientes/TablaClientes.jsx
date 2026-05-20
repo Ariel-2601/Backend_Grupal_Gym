@@ -7,10 +7,11 @@ import {
 } from 'react-bootstrap';
 
 const TablaClientes = ({
-    clientes,
-    cargando,
-    onEditar,
-    onEliminar
+  clientes,
+  cargando,
+  onEditar,
+  onEliminar,
+  generarPDFCliente
 }) => {
 
     return (
@@ -87,26 +88,41 @@ const TablaClientes = ({
                                                 : "Inactivo"}
                                         </Badge>
                                     </td>
-                                    <td className="text-center">
-                                        <Button
-                                            variant="warning"
-                                            size="sm"
-                                            className="me-2"
-                                            title="Editar"
-                                            onClick={() => onEditar(cliente)}
-                                        >
-                                            <i className="bi bi-pencil-square"></i>
-                                        </Button>
+                      <td className="text-center">
+    
+    {/* EDITAR */}
+    <Button
+        variant="warning"
+        size="sm"
+        className="me-2"
+        title="Editar"
+        onClick={() => onEditar(cliente)}
+    >
+        <i className="bi bi-pencil-square"></i>
+    </Button>
 
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            title="Eliminar"
-                                            onClick={() => onEliminar(cliente)}
-                                        >
-                                            <i className="bi bi-trash"></i>
-                                        </Button>
-                                    </td>
+    {/* PDF */}
+    <Button
+        variant="primary"
+        size="sm"
+        className="me-2"
+        title="Generar PDF"
+        onClick={() => generarPDFCliente(cliente)}
+    >
+        <i className="bi bi-file-earmark-pdf"></i>
+    </Button>
+
+    {/* ELIMINAR */}
+    <Button
+        variant="danger"
+        size="sm"
+        title="Eliminar"
+        onClick={() => onEliminar(cliente)}
+    >
+        <i className="bi bi-trash"></i>
+    </Button>
+
+</td>
                                 </tr>
                             ))
                         )}
