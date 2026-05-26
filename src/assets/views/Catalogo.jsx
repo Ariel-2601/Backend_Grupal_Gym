@@ -5,8 +5,8 @@ import {
     Row,
     Col,
     Card,
-    Badge,
-    Spinner
+    Spinner,
+    Badge
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
@@ -14,186 +14,113 @@ import { supabase } from "../database/supabaseconfig";
 const Catalogo = () => {
 
     // =========================
-    // Estados
+    // ESTADOS
     // =========================
 
     const [productos, setProductos] = useState([]);
-
-    const [cargando, setCargando] = useState(false);
+    const [cargando, setCargando] = useState(true);
 
     // =========================
-    // Cargar productos
+    // OBTENER PRODUCTOS
     // =========================
 
-    const cargarProductos = async () => {
+    const obtenerProductos = async () => {
 
-        try {
+        setCargando(true);
 
-            setCargando(true);
+        const { data, error } = await supabase
+            .from("productos")
+            .select("*");
 
-            const { data, error } = await supabase
-                .from("productos")
-                .select("*")
-                .eq("estado", "Activo")
-                .order("id_producto", {
-                    ascending: true
-                });
-
-            if (error) throw error;
-
-            setProductos(data || []);
-
-        } catch (error) {
-
-            console.log(
-                "Error al cargar catálogo:",
-                error
-            );
-
-        } finally {
-
-            setCargando(false);
+        if (error) {
+            console.log(error);
+        } else {
+            setProductos(data);
         }
+
+        setCargando(false);
     };
 
     // =========================
-    // useEffect
+    // USE EFFECT
     // =========================
 
     useEffect(() => {
-        cargarProductos();
+        obtenerProductos();
     }, []);
 
     // =========================
-    // Render
+    // LOADING
+    // =========================
+
+    if (cargando) {
+        return (
+            <div className="text-center py-5">
+                <Spinner animation="border" />
+            </div>
+        );
+    }
+
+    // =========================
+    // RENDER
     // =========================
 
     return (
+        <Container className="py-4">
 
-        <Container className="mt-4">
+            <h1 className="text-center mb-5">
+                Catálogo de Productos
+            </h1>
 
-            {/* Encabezado */}
-            <Row className="mb-4">
-
-                <Col>
-
-                    <h2>
-                        <i className="bi bi-bag-heart-fill me-2"></i>
-                        Catálogo Fitness
-                    </h2>
-
-                    <p className="text-muted">
-                        Productos disponibles en GymLiveFitness
-                    </p>
-
-                </Col>
-
-            </Row>
-
-            {/* Loading */}
-            {cargando && (
-
-                <div className="text-center py-5">
-
-                    <Spinner animation="border" />
-
-                    <p className="mt-3">
-                        Cargando productos...
-                    </p>
-
-                </div>
-            )}
-
-            {/* Productos */}
             <Row>
-
-                {!cargando && productos.length === 0 && (
-
-                    <Col>
-
-                        <div className="text-center py-5">
-
-                            <h5>
-                                No hay productos disponibles
-                            </h5>
-
-                        </div>
-
-                    </Col>
-                )}
 
                 {productos.map((producto) => (
 
                     <Col
                         key={producto.id_producto}
-                        lg={4}
                         md={6}
-                        sm={12}
+                        lg={4}
+                        xl={3}
                         className="mb-4"
                     >
 
-                        <Card className="shadow border-0 h-100">
+                        <Card className="h-100 shadow border-0">
 
-                            {/* Imagen */}
-                            <div
-                                className="d-flex align-items-center justify-content-center bg-light"
+                            <Card.Img
+                                variant="top"
+                                src={
+                                    producto.imagen ||
+                                    "https://via.placeholder.com/300x250"
+                                }
                                 style={{
-                                    height: "220px"
+                                    height: "250px",
+                                    objectFit: "cover"
                                 }}
-                            >
-
-                                <i
-                                    className="bi bi-box-seam-fill text-secondary"
-                                    style={{
-                                        fontSize: "5rem"
-                                    }}
-                                ></i>
-
-                            </div>
+                            />
 
                             <Card.Body>
 
-                                {/* Nombre */}
+                                <Badge
+                                    bg="dark"
+                                    className="mb-2"
+                                >
+                                    {producto.categoria_producto}
+                                </Badge>
+
                                 <Card.Title>
                                     {producto.nombre_producto}
                                 </Card.Title>
 
-                                {/* Categoría */}
-                                <Badge bg="dark" className="mb-2">
-
-                                    {
-                                        producto.categoria_producto
-                                    }
-
-                                </Badge>
-
-                                {/* Descripción */}
-                                <Card.Text
-                                    className="text-muted"
-                                >
-                                    {
-                                        producto.descripcion
-                                    }
-                                </Card.Text>
-
-                                {/* Precio */}
-                                <h4 className="mt-3 text-success">
-
-                                    C$ {producto.precio}
-
+                                <h4 className="text-success">
+                                    ${producto.precio}
                                 </h4>
 
-                                {/* Stock */}
-                                <p className="mt-2">
-
-                                    <strong>
-                                        Stock:
-                                    </strong>
-
+                                <p>
+                                    Stock disponible:
                                     {" "}
-
-                                    {producto.stock}
-
+                                    <strong>
+                                        {producto.stock}
+                                    </strong>
                                 </p>
 
                             </Card.Body>
@@ -201,6 +128,7 @@ const Catalogo = () => {
                         </Card>
 
                     </Col>
+
                 ))}
 
             </Row>

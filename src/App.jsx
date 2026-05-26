@@ -14,9 +14,8 @@ import Membresias from "./assets/views/Membresias";
 import Asistencias from "./assets/views/Asistencias";
 import Ventas from "./assets/views/Ventas";
 import Productos from "./assets/views/Productos";
+import Catalogo from "./assets/views/Catalogo";
 
-// IMPORT ELIMINADO
-// import Catalogo from "./assets/views/Catalogo";
 
 import Login from "./assets/views/Login";
 
@@ -124,6 +123,8 @@ const App = () => {
               </RutaProtegida>
             }
           />
+
+          <Route path="/catalogo" element={<Catalogo />} />
 
           {/* =========================
               Página no encontrada

@@ -171,6 +171,14 @@ function Encabezado() {
                 📦 Productos
               </Nav.Link>
 
+              {/* Catálogo */}
+
+              <Nav.Link
+                onClick={() => manejarNavegacion("/catalogo")}
+              >
+                🛒 Catálogo
+              </Nav.Link>
+
               {/* Cerrar sesión */}
 
               <Nav.Link
