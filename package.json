@@ -17,6 +17,7 @@
     "jspdf-autotable": "^5.0.8",
     "react": "^19.2.5",
     "react-bootstrap": "^2.10.10",
+    "react-bootstrap-icons": "^1.11.6",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.15.0",
     "tslib": "^2.8.1"

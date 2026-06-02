@@ -67,7 +67,7 @@ const TablaMembresia = ({
               </td>
 
               <td>
-                $
+                C$
                 {
                   membresia.precio
                 }

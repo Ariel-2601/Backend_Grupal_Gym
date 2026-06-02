@@ -12,6 +12,8 @@ import {
   Offcanvas
 } from "react-bootstrap";
 
+import { supabase } from "../../../assets/database/supabaseconfig";
+
 import logo from "../../../assets/logo.png";
 
 function Encabezado() {
@@ -22,17 +24,9 @@ function Encabezado() {
 
   const location = useLocation();
 
-  // =========================
-  // Toggle menú
-  // =========================
-
   const manejarToggle = () => {
     setMostrarMenu(!mostrarMenu);
   };
-
-  // =========================
-  // Navegación
-  // =========================
 
   const manejarNavegacion = (ruta) => {
 
@@ -41,39 +35,40 @@ function Encabezado() {
     setMostrarMenu(false);
   };
 
-  // =========================
-  // Cerrar sesión
-  // =========================
-
   const cerrarSesion = async () => {
 
-    localStorage.removeItem("usuario");
+    try {
 
-    navigate("/login");
+      await supabase.auth.signOut();
+
+      localStorage.removeItem(
+        "usuario-supabase"
+      );
+
+      navigate("/login");
+
+    } catch (error) {
+
+      console.error(
+        "Error al cerrar sesión:",
+        error
+      );
+    }
   };
 
-  // =========================
-  // Ocultar navbar en login
-  // =========================
-
-  if (location.pathname === "/login") return null;
-
-  // =========================
-  // Render
-  // =========================
+  if (location.pathname === "/login")
+    return null;
 
   return (
 
     <Navbar
-      expand={false}
+      expand="lg"
       className="color-navbar shadow-sm"
       variant="dark"
       fixed="top"
     >
 
       <Container fluid>
-
-        {/* Logo */}
 
         <Navbar.Brand
           onClick={() => manejarNavegacion("/")}
@@ -95,20 +90,77 @@ function Encabezado() {
 
         </Navbar.Brand>
 
+        {/* Menú escritorio */}
+
+        <Nav className="ms-auto d-none d-lg-flex align-items-center">
+
+          <Nav.Link
+            onClick={() => manejarNavegacion("/")}
+          >
+            📊 Dashboard
+          </Nav.Link>
+
+          <Nav.Link
+            onClick={() => manejarNavegacion("/clientes")}
+          >
+            👥 Clientes
+          </Nav.Link>
+
+          <Nav.Link
+            onClick={() => manejarNavegacion("/membresias")}
+          >
+            🪪 Membresías
+          </Nav.Link>
+
+          <Nav.Link
+            onClick={() => manejarNavegacion("/asistencias")}
+          >
+            📅 Asistencias
+          </Nav.Link>
+
+          <Nav.Link
+            onClick={() => manejarNavegacion("/ventas")}
+          >
+            💰 Ventas
+          </Nav.Link>
+
+          <Nav.Link
+            onClick={() => manejarNavegacion("/productos")}
+          >
+            📦 Productos
+          </Nav.Link>
+
+          <Nav.Link
+            onClick={() => manejarNavegacion("/catalogo")}
+          >
+            🛒 Catálogo
+          </Nav.Link>
+
+          <Nav.Link
+            onClick={cerrarSesion}
+            className="text-danger fw-bold"
+          >
+            🚪 Cerrar Sesión
+          </Nav.Link>
+
+        </Nav>
+
         {/* Botón hamburguesa */}
 
         <Navbar.Toggle
           aria-controls="offcanvasNavbar"
           onClick={manejarToggle}
+          className="d-lg-none"
         />
 
-        {/* Menú lateral */}
+        {/* Menú móvil */}
 
         <Navbar.Offcanvas
           id="offcanvasNavbar"
           show={mostrarMenu}
           onHide={manejarToggle}
           placement="end"
+          className="d-lg-none"
         >
 
           <Offcanvas.Header closeButton>
@@ -123,15 +175,11 @@ function Encabezado() {
 
             <Nav className="justify-content-end flex-grow-1 pe-3">
 
-              {/* Dashboard */}
-
               <Nav.Link
                 onClick={() => manejarNavegacion("/")}
               >
                 📊 Dashboard
               </Nav.Link>
-
-              {/* Clientes */}
 
               <Nav.Link
                 onClick={() => manejarNavegacion("/clientes")}
@@ -139,15 +187,11 @@ function Encabezado() {
                 👥 Clientes
               </Nav.Link>
 
-              {/* Membresías */}
-
               <Nav.Link
                 onClick={() => manejarNavegacion("/membresias")}
               >
                 🪪 Membresías
               </Nav.Link>
-
-              {/* Asistencias */}
 
               <Nav.Link
                 onClick={() => manejarNavegacion("/asistencias")}
@@ -155,15 +199,11 @@ function Encabezado() {
                 📅 Asistencias
               </Nav.Link>
 
-              {/* Ventas */}
-
               <Nav.Link
                 onClick={() => manejarNavegacion("/ventas")}
               >
                 💰 Ventas
               </Nav.Link>
-
-              {/* Productos */}
 
               <Nav.Link
                 onClick={() => manejarNavegacion("/productos")}
@@ -171,15 +211,11 @@ function Encabezado() {
                 📦 Productos
               </Nav.Link>
 
-              {/* Catálogo */}
-
               <Nav.Link
                 onClick={() => manejarNavegacion("/catalogo")}
               >
                 🛒 Catálogo
               </Nav.Link>
-
-              {/* Cerrar sesión */}
 
               <Nav.Link
                 onClick={cerrarSesion}

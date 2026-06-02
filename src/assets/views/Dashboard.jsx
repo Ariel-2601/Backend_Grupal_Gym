@@ -28,6 +28,8 @@ const Dashboard = () => {
     const [clientesActivos, setClientesActivos] = useState(0);
     const [horarioPico, setHorarioPico] = useState("Sin datos");
     const [frecuenciaAsistencia, setFrecuenciaAsistencia] = useState(0);
+    const [diaMayorConcurrencia, setDiaMayorConcurrencia] = useState("Sin datos");
+const [productoMasVendido, setProductoMasVendido] = useState("Sin datos");
 
     // =========================
     // Cargar estadísticas
@@ -94,7 +96,72 @@ const Dashboard = () => {
                 if (horaMayor) {
                     setHorarioPico(`${horaMayor}:00 hrs`);
                 }
+                const dias = {};
+
+asistenciasData.forEach((asistencia) => {
+
+    if (!asistencia.fecha) return;
+
+    const fecha = new Date(asistencia.fecha);
+
+    const nombreDia = fecha.toLocaleDateString("es-ES", {
+        weekday: "long"
+    });
+
+    dias[nombreDia] = (dias[nombreDia] || 0) + 1;
+});
+
+let mejorDia = "";
+let mayorCantidad = 0;
+
+Object.entries(dias).forEach(([dia, cantidad]) => {
+
+    if (cantidad > mayorCantidad) {
+        mayorCantidad = cantidad;
+        mejorDia = dia;
+    }
+});
+
+if (mejorDia) {
+    setDiaMayorConcurrencia(mejorDia);
+}
             }
+
+// =========================
+// Horario de mayor afluencia (CORREGIDO)
+// =========================
+if (asistenciasData && asistenciasData.length > 0) {
+    const conteoHoras = {};
+
+    asistenciasData.forEach((asistencia) => {
+        // AQUÍ ESTABA EL ERROR: Cambiamos 'asistencia.hora' por 'asistencia.hora_entrada'
+        const valorHora = asistencia.hora_entrada; 
+        
+        if (valorHora) {
+            // Extraemos la hora (ej: "18" de "18:30:00")
+            const hora = valorHora.toString().split(':')[0];
+            conteoHoras[hora] = (conteoHoras[hora] || 0) + 1;
+        }
+    });
+
+    let horaPico = null;
+    let maxVisitas = 0;
+
+    Object.entries(conteoHoras).forEach(([hora, cantidad]) => {
+        if (cantidad > maxVisitas) {
+            maxVisitas = cantidad;
+            horaPico = hora;
+        }
+    });
+
+    if (horaPico) {
+        const hInicio = parseInt(horaPico);
+        const hFin = (hInicio + 1) % 24;
+        setHorarioPico(`${hInicio.toString().padStart(2, '0')}:00 - ${hFin.toString().padStart(2, '0')}:00 hrs`);
+    } else {
+        setHorarioPico("Sin datos");
+    }
+}
 
             // =========================
             // Ventas e Ingresos
@@ -148,6 +215,9 @@ const Dashboard = () => {
                     .slice(0, 8);
 
                 setProductosMasVendidos(productosOrdenados);
+                if (productosOrdenados.length > 0) {
+    setProductoMasVendido(productosOrdenados[0][0]);
+}
             } else {
                 setProductosMasVendidos([]);
             }
@@ -287,71 +357,121 @@ const Dashboard = () => {
                         Información de KPIs
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    <Row>
-                        <Col md={6} className="mb-3">
-                            <Card className="shadow-sm border-0">
-                                <Card.Body>
-                                    <h6 className="text-muted">Clientes Activos</h6>
-                                    <h2 className="text-success">{clientesActivos}</h2>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                        <Col md={6} className="mb-3">
-                            <Card className="shadow-sm border-0">
-                                <Card.Body>
-                                    <h6 className="text-muted">Horario Pico</h6>
-                                    <h2 className="text-primary">{horarioPico}</h2>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                        <Col md={6} className="mb-3">
-                            <Card className="shadow-sm border-0">
-                                <Card.Body>
-                                    <h6 className="text-muted">Frecuencia Promedio</h6>
-                                    <h2 className="text-warning">{frecuenciaAsistencia}</h2>
-                                    <small>asistencias por cliente</small>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                        <Col md={6} className="mb-3">
-                            <Card className="shadow-sm border-0">
-                                <Card.Body>
-                                    <h6 className="text-muted">Ingresos Totales</h6>
-                                    <h2 className="text-success">
-                                        $ {ingresosTotales.toLocaleString()}
-                                    </h2>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
+              <Modal.Body>
 
-                    <hr />
-                    <h5 className="mb-3">Productos más vendidos</h5>
+    <Row>
 
-                    {productosMasVendidos.length === 0 ? (
-                        <p className="text-muted">No hay ventas registradas aún.</p>
-                    ) : (
-                        <ul className="list-group">
-                            {productosMasVendidos.map((producto, index) => (
-                                <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                                    <strong>#{index + 1} {producto[0]}</strong>
-                                    <span className="badge bg-primary rounded-pill fs-6">
-                                        {producto[1]} unidades
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setMostrarKPI(false)}>
-                        Cerrar
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        </Container>
-    );
+        <Col md={6} className="mb-3">
+            <Card className="shadow-sm border-0">
+                <Card.Body>
+                    <h6 className="text-muted">
+                        Horario de Mayor Afluencia
+                    </h6>
+                    <h2 className="text-primary">
+                        {horarioPico}
+                    </h2>
+                </Card.Body>
+            </Card>
+        </Col>
+
+        <Col md={6} className="mb-3">
+            <Card className="shadow-sm border-0">
+                <Card.Body>
+                    <h6 className="text-muted">
+                        Día Más Concurrido
+                    </h6>
+                    <h2 className="text-success text-capitalize">
+                        {diaMayorConcurrencia}
+                    </h2>
+                </Card.Body>
+            </Card>
+        </Col>
+
+        <Col md={6} className="mb-3">
+            <Card className="shadow-sm border-0">
+                <Card.Body>
+                    <h6 className="text-muted">
+                        Frecuencia Promedio
+                    </h6>
+                    <h2 className="text-warning">
+                        {frecuenciaAsistencia}
+                    </h2>
+                </Card.Body>
+            </Card>
+        </Col>
+
+        <Col md={6} className="mb-3">
+            <Card className="shadow-sm border-0">
+                <Card.Body>
+                    <h6 className="text-muted">
+                        Producto Más Vendido
+                    </h6>
+                    <h2 className="text-danger">
+                        {productoMasVendido}
+                    </h2>
+                </Card.Body>
+            </Card>
+        </Col>
+
+        <Col md={12} className="mb-3">
+            <Card className="shadow-sm border-0">
+                <Card.Body>
+                    <h6 className="text-muted">
+                        Ingresos Totales
+                    </h6>
+                    <h2 className="text-success">
+                        $ {ingresosTotales.toLocaleString()}
+                    </h2>
+                </Card.Body>
+            </Card>
+        </Col>
+
+    </Row>
+
+    <hr />
+
+    <h5 className="mb-3">
+        Ranking de Productos Más Vendidos
+    </h5>
+
+    {productosMasVendidos.length === 0 ? (
+        <p className="text-muted">
+            No hay ventas registradas aún.
+        </p>
+    ) : (
+        <ul className="list-group">
+            {productosMasVendidos.map((producto, index) => (
+                <li
+                    key={index}
+                    className="list-group-item d-flex justify-content-between align-items-center"
+                >
+                    <strong>
+                        #{index + 1} {producto[0]}
+                    </strong>
+
+                    <span className="badge bg-primary rounded-pill fs-6">
+                        {producto[1]} unidades
+                    </span>
+                </li>
+            ))}
+        </ul>
+    )}
+
+</Modal.Body>
+
+<Modal.Footer>
+    <Button
+        variant="secondary"
+        onClick={() => setMostrarKPI(false)}
+    >
+        Cerrar
+    </Button>
+</Modal.Footer>
+
+</Modal>
+
+</Container>
+);
 };
 
 export default Dashboard;

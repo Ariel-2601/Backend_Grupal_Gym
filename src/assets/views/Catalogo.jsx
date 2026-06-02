@@ -6,23 +6,20 @@ import {
     Col,
     Card,
     Spinner,
-    Badge
+    Badge,
+    Modal,
+    Button
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
 
 const Catalogo = () => {
 
-    // =========================
-    // ESTADOS
-    // =========================
-
     const [productos, setProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
 
-    // =========================
-    // OBTENER PRODUCTOS
-    // =========================
+    const [mostrarModal, setMostrarModal] = useState(false);
+    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
 
     const obtenerProductos = async () => {
 
@@ -41,17 +38,14 @@ const Catalogo = () => {
         setCargando(false);
     };
 
-    // =========================
-    // USE EFFECT
-    // =========================
+    const verProducto = (producto) => {
+        setProductoSeleccionado(producto);
+        setMostrarModal(true);
+    };
 
     useEffect(() => {
         obtenerProductos();
     }, []);
-
-    // =========================
-    // LOADING
-    // =========================
 
     if (cargando) {
         return (
@@ -60,10 +54,6 @@ const Catalogo = () => {
             </div>
         );
     }
-
-    // =========================
-    // RENDER
-    // =========================
 
     return (
         <Container className="py-4">
@@ -84,7 +74,20 @@ const Catalogo = () => {
                         className="mb-4"
                     >
 
-                        <Card className="h-100 shadow border-0">
+                        <Card
+                            className="h-100 shadow border-0"
+                            style={{
+                                cursor: "pointer",
+                                transition: "0.3s"
+                            }}
+                            onClick={() => verProducto(producto)}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = "scale(1.03)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = "scale(1)";
+                            }}
+                        >
 
                             <Card.Img
                                 variant="top"
@@ -94,7 +97,9 @@ const Catalogo = () => {
                                 }
                                 style={{
                                     height: "250px",
-                                    objectFit: "cover"
+                                    objectFit: "contain",
+                                    backgroundColor: "#f8f9fa",
+                                    padding: "10px"
                                 }}
                             />
 
@@ -116,8 +121,7 @@ const Catalogo = () => {
                                 </h4>
 
                                 <p>
-                                    Stock disponible:
-                                    {" "}
+                                    Stock disponible:{" "}
                                     <strong>
                                         {producto.stock}
                                     </strong>
@@ -132,6 +136,77 @@ const Catalogo = () => {
                 ))}
 
             </Row>
+
+            <Modal
+                show={mostrarModal}
+                onHide={() => setMostrarModal(false)}
+                size="xl"
+                centered
+            >
+                {productoSeleccionado && (
+                    <>
+                        <Modal.Header closeButton>
+                            <Modal.Title>
+                                {productoSeleccionado.nombre_producto}
+                            </Modal.Title>
+                        </Modal.Header>
+
+                        <Modal.Body>
+
+                            <img
+                                src={
+                                    productoSeleccionado.imagen ||
+                                    "https://via.placeholder.com/600x400"
+                                }
+                                alt={productoSeleccionado.nombre_producto}
+                                className="img-fluid rounded mb-3"
+                                style={{
+                                    width: "100%",
+                                    height: "600px",
+                                    objectFit: "contain",
+                                    backgroundColor: "#f8f9fa",
+                                    padding: "15px"
+                                }}
+                            />
+
+                            <Badge
+                                bg="dark"
+                                className="mb-3"
+                            >
+                                {productoSeleccionado.categoria_producto}
+                            </Badge>
+
+                            <h2 className="text-success">
+                                ${productoSeleccionado.precio}
+                            </h2>
+
+                            <hr />
+
+                            <p>
+                                <strong>Stock disponible:</strong>{" "}
+                                {productoSeleccionado.stock}
+                            </p>
+
+                            <p>
+                                <strong>Categoría:</strong>{" "}
+                                {productoSeleccionado.categoria_producto}
+                            </p>
+
+                        </Modal.Body>
+
+                        <Modal.Footer>
+
+                            <Button
+                                variant="secondary"
+                                onClick={() => setMostrarModal(false)}
+                            >
+                                Cerrar
+                            </Button>
+
+                        </Modal.Footer>
+                    </>
+                )}
+            </Modal>
 
         </Container>
     );

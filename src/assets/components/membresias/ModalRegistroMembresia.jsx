@@ -1,10 +1,3 @@
-/* =========================
-ModalRegistroMembresia.jsx
-========================= */
-
-/* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable react/prop-types */
-
 import React, { useState } from "react";
 
 import {
