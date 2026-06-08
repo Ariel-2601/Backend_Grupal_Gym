@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import {
   useNavigate,
   useLocation
@@ -13,7 +12,6 @@ import {
 } from "react-bootstrap";
 
 import { supabase } from "../../../assets/database/supabaseconfig";
-
 import logo from "../../../assets/logo.png";
 
 function Encabezado() {
@@ -21,7 +19,6 @@ function Encabezado() {
   const [mostrarMenu, setMostrarMenu] = useState(false);
 
   const navigate = useNavigate();
-
   const location = useLocation();
 
   const manejarToggle = () => {
@@ -29,9 +26,7 @@ function Encabezado() {
   };
 
   const manejarNavegacion = (ruta) => {
-
     navigate(ruta);
-
     setMostrarMenu(false);
   };
 
@@ -70,6 +65,7 @@ function Encabezado() {
 
       <Container fluid>
 
+        {/* Logo */}
         <Navbar.Brand
           onClick={() => manejarNavegacion("/")}
           style={{ cursor: "pointer" }}
@@ -91,7 +87,6 @@ function Encabezado() {
         </Navbar.Brand>
 
         {/* Menú escritorio */}
-
         <Nav className="ms-auto d-none d-lg-flex align-items-center">
 
           <Nav.Link
@@ -110,6 +105,14 @@ function Encabezado() {
             onClick={() => manejarNavegacion("/membresias")}
           >
             🪪 Membresías
+          </Nav.Link>
+
+          <Nav.Link
+            onClick={() =>
+              manejarNavegacion("/membresias-clientes")
+            }
+          >
+            👥 Membresías Clientes
           </Nav.Link>
 
           <Nav.Link
@@ -146,7 +149,6 @@ function Encabezado() {
         </Nav>
 
         {/* Botón hamburguesa */}
-
         <Navbar.Toggle
           aria-controls="offcanvasNavbar"
           onClick={manejarToggle}
@@ -154,7 +156,6 @@ function Encabezado() {
         />
 
         {/* Menú móvil */}
-
         <Navbar.Offcanvas
           id="offcanvasNavbar"
           show={mostrarMenu}
@@ -191,6 +192,14 @@ function Encabezado() {
                 onClick={() => manejarNavegacion("/membresias")}
               >
                 🪪 Membresías
+              </Nav.Link>
+
+              <Nav.Link
+                onClick={() =>
+                  manejarNavegacion("/membresias-clientes")
+                }
+              >
+                👥 Membresías Clientes
               </Nav.Link>
 
               <Nav.Link

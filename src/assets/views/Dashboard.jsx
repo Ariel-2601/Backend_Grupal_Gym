@@ -344,130 +344,136 @@ if (asistenciasData && asistenciasData.length > 0) {
                 </Col>
             </Row>
 
-            {/* Modal KPIs */}
-            <Modal
-                show={mostrarKPI}
-                onHide={() => setMostrarKPI(false)}
-                centered
-                size="lg"
-            >
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        <i className="bi bi-graph-up-arrow me-2"></i>
-                        Información de KPIs
-                    </Modal.Title>
-                </Modal.Header>
-              <Modal.Body>
+{/* Modal KPIs */}
+<Modal
+    show={mostrarKPI}
+    onHide={() => setMostrarKPI(false)}
+    centered
+    size="xl"
+>
+    <Modal.Header closeButton>
+        <Modal.Title>
+            <i className="bi bi-graph-up-arrow me-2"></i>
+            Información de KPIs
+        </Modal.Title>
+    </Modal.Header>
 
-    <Row>
+    <Modal.Body style={{ maxHeight: "75vh", overflowY: "auto" }}>
 
-        <Col md={6} className="mb-3">
-            <Card className="shadow-sm border-0">
-                <Card.Body>
-                    <h6 className="text-muted">
-                        Horario de Mayor Afluencia
-                    </h6>
-                    <h2 className="text-primary">
-                        {horarioPico}
-                    </h2>
-                </Card.Body>
-            </Card>
-        </Col>
+        <Row>
 
-        <Col md={6} className="mb-3">
-            <Card className="shadow-sm border-0">
-                <Card.Body>
-                    <h6 className="text-muted">
-                        Día Más Concurrido
-                    </h6>
-                    <h2 className="text-success text-capitalize">
-                        {diaMayorConcurrencia}
-                    </h2>
-                </Card.Body>
-            </Card>
-        </Col>
+            <Col md={6} className="mb-2">
+                <Card className="shadow-sm border-0">
+                    <Card.Body className="py-2 px-3">
+                        <h6 className="text-muted mb-1">
+                            Horario de Mayor Afluencia
+                        </h6>
 
-        <Col md={6} className="mb-3">
-            <Card className="shadow-sm border-0">
-                <Card.Body>
-                    <h6 className="text-muted">
-                        Frecuencia Promedio
-                    </h6>
-                    <h2 className="text-warning">
-                        {frecuenciaAsistencia}
-                    </h2>
-                </Card.Body>
-            </Card>
-        </Col>
+                        <h4 className="text-primary mb-0">
+                            {horarioPico}
+                        </h4>
+                    </Card.Body>
+                </Card>
+            </Col>
 
-        <Col md={6} className="mb-3">
-            <Card className="shadow-sm border-0">
-                <Card.Body>
-                    <h6 className="text-muted">
-                        Producto Más Vendido
-                    </h6>
-                    <h2 className="text-danger">
-                        {productoMasVendido}
-                    </h2>
-                </Card.Body>
-            </Card>
-        </Col>
+            <Col md={6} className="mb-2">
+                <Card className="shadow-sm border-0">
+                    <Card.Body className="py-2 px-3">
+                        <h6 className="text-muted mb-1">
+                            Día Más Concurrido
+                        </h6>
 
-        <Col md={12} className="mb-3">
-            <Card className="shadow-sm border-0">
-                <Card.Body>
-                    <h6 className="text-muted">
-                        Ingresos Totales
-                    </h6>
-                    <h2 className="text-success">
-                        $ {ingresosTotales.toLocaleString()}
-                    </h2>
-                </Card.Body>
-            </Card>
-        </Col>
+                        <h4 className="text-success text-capitalize mb-0">
+                            {diaMayorConcurrencia}
+                        </h4>
+                    </Card.Body>
+                </Card>
+            </Col>
 
-    </Row>
+            <Col md={6} className="mb-2">
+                <Card className="shadow-sm border-0">
+                    <Card.Body className="py-2 px-3">
+                        <h6 className="text-muted mb-1">
+                            Frecuencia Promedio
+                        </h6>
 
-    <hr />
+                        <h4 className="text-warning mb-0">
+                            {frecuenciaAsistencia}
+                        </h4>
+                    </Card.Body>
+                </Card>
+            </Col>
 
-    <h5 className="mb-3">
-        Ranking de Productos Más Vendidos
-    </h5>
+            <Col md={6} className="mb-2">
+                <Card className="shadow-sm border-0">
+                    <Card.Body className="py-2 px-3">
+                        <h6 className="text-muted mb-1">
+                            Producto Más Vendido
+                        </h6>
 
-    {productosMasVendidos.length === 0 ? (
-        <p className="text-muted">
-            No hay ventas registradas aún.
-        </p>
-    ) : (
-        <ul className="list-group">
-            {productosMasVendidos.map((producto, index) => (
-                <li
-                    key={index}
-                    className="list-group-item d-flex justify-content-between align-items-center"
-                >
-                    <strong>
-                        #{index + 1} {producto[0]}
-                    </strong>
+                        <h4 className="text-danger mb-0">
+                            {productoMasVendido}
+                        </h4>
+                    </Card.Body>
+                </Card>
+            </Col>
 
-                    <span className="badge bg-primary rounded-pill fs-6">
-                        {producto[1]} unidades
-                    </span>
-                </li>
-            ))}
-        </ul>
-    )}
+            <Col md={12} className="mb-2">
+                <Card className="shadow-sm border-0">
+                    <Card.Body className="py-2 px-3">
+                        <h6 className="text-muted mb-1">
+                            Ingresos Totales
+                        </h6>
 
-</Modal.Body>
+                        <h4 className="text-success mb-0">
+                            $ {ingresosTotales.toLocaleString()}
+                        </h4>
+                    </Card.Body>
+                </Card>
+            </Col>
 
-<Modal.Footer>
-    <Button
-        variant="secondary"
-        onClick={() => setMostrarKPI(false)}
-    >
-        Cerrar
-    </Button>
-</Modal.Footer>
+        </Row>
 
+        <hr className="my-3" />
+
+        <h5 className="mb-2">
+            Ranking de Productos Más Vendidos
+        </h5>
+
+        {productosMasVendidos.length === 0 ? (
+            <p className="text-muted">
+                No hay ventas registradas aún.
+            </p>
+        ) : (
+            <ul className="list-group list-group-flush">
+                {productosMasVendidos.slice(0, 5).map((producto, index) => (
+                    <li
+                        key={index}
+                        className="list-group-item py-2 d-flex justify-content-between align-items-center"
+                    >
+                        <strong>
+                            #{index + 1} {producto[0]}
+                        </strong>
+
+                        <span className="badge bg-primary rounded-pill">
+                            {producto[1]} unidades
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        )}
+
+    </Modal.Body>
+
+    <Modal.Footer>
+        <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setMostrarKPI(false)}
+        >
+            Cerrar
+        </Button>
+    </Modal.Footer>
 </Modal>
 
 </Container>

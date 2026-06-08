@@ -63,11 +63,12 @@ const ModalRegistroMembresia = ({
 
   return (
 
-    <Modal
-      show={mostrar}
-      onHide={() => setMostrar(false)}
-      centered
-    >
+<Modal
+  show={mostrar}
+  onHide={() => setMostrar(false)}
+  centered
+  size="lg"
+>
 
       <Form onSubmit={handleSubmit}>
 
@@ -81,141 +82,100 @@ const ModalRegistroMembresia = ({
 
         </Modal.Header>
 
-        <Modal.Body>
+    <Modal.Body className="py-2">
 
-          <Form.Group className="mb-3">
+  <div className="row">
 
-            <Form.Label>
+    <div className="col-md-6">
+      <Form.Group className="mb-2">
+        <Form.Label>Nombre</Form.Label>
+        <Form.Control
+          size="sm"
+          type="text"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          required
+        />
+      </Form.Group>
+    </div>
 
-              Nombre
+    <div className="col-md-6">
+      <Form.Group className="mb-2">
+        <Form.Label>Precio</Form.Label>
+        <Form.Control
+          size="sm"
+          type="number"
+          value={precio}
+          onChange={(e) => setPrecio(e.target.value)}
+          required
+        />
+      </Form.Group>
+    </div>
 
-            </Form.Label>
+    <div className="col-md-6">
+      <Form.Group className="mb-2">
+        <Form.Label>Duración en días</Form.Label>
+        <Form.Control
+          size="sm"
+          type="number"
+          value={duracionDias}
+          onChange={(e) => setDuracionDias(e.target.value)}
+          required
+        />
+      </Form.Group>
+    </div>
 
-            <Form.Control
-              type="text"
-              value={nombre}
-              onChange={(e) =>
-                setNombre(e.target.value)
-              }
-              required
-            />
+    <div className="col-md-6">
+      <Form.Group className="mb-2">
+        <Form.Label>Estado</Form.Label>
+        <Form.Select
+          size="sm"
+          value={estado}
+          onChange={(e) => setEstado(e.target.value)}
+        >
+          <option value="Activa">Activa</option>
+          <option value="Inactiva">Inactiva</option>
+        </Form.Select>
+      </Form.Group>
+    </div>
 
-          </Form.Group>
+    <div className="col-12">
+      <Form.Group className="mb-2">
+        <Form.Label>Descripción</Form.Label>
+        <Form.Control
+          size="sm"
+          as="textarea"
+          rows={2}
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
+          required
+        />
+      </Form.Group>
+    </div>
 
-          <Form.Group className="mb-3">
+  </div>
 
-            <Form.Label>
+</Modal.Body>
 
-              Descripción
+<Modal.Footer className="py-2">
 
-            </Form.Label>
+  <Button
+    variant="secondary"
+    size="sm"
+    onClick={() => setMostrar(false)}
+  >
+    Cancelar
+  </Button>
 
-            <Form.Control
-              as="textarea"
-              rows={3}
-              value={descripcion}
-              onChange={(e) =>
-                setDescripcion(
-                  e.target.value
-                )
-              }
-              required
-            />
+  <Button
+    variant="success"
+    size="sm"
+    type="submit"
+  >
+    Registrar
+  </Button>
 
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-
-            <Form.Label>
-
-              Precio
-
-            </Form.Label>
-
-            <Form.Control
-              type="number"
-              value={precio}
-              onChange={(e) =>
-                setPrecio(e.target.value)
-              }
-              required
-            />
-
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-
-            <Form.Label>
-
-              Duración en días
-
-            </Form.Label>
-
-            <Form.Control
-              type="number"
-              value={duracionDias}
-              onChange={(e) =>
-                setDuracionDias(
-                  e.target.value
-                )
-              }
-              required
-            />
-
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-
-            <Form.Label>
-
-              Estado
-
-            </Form.Label>
-
-            <Form.Select
-              value={estado}
-              onChange={(e) =>
-                setEstado(e.target.value)
-              }
-            >
-
-              <option value="Activa">
-                Activa
-              </option>
-
-              <option value="Inactiva">
-                Inactiva
-              </option>
-
-            </Form.Select>
-
-          </Form.Group>
-
-        </Modal.Body>
-
-        <Modal.Footer>
-
-          <Button
-            variant="secondary"
-            onClick={() =>
-              setMostrar(false)
-            }
-          >
-
-            Cancelar
-
-          </Button>
-
-          <Button
-            variant="success"
-            type="submit"
-          >
-
-            Registrar
-
-          </Button>
-
-        </Modal.Footer>
+</Modal.Footer>
 
       </Form>
 

@@ -65,13 +65,12 @@ const ModalRegistroCliente = ({
     };
 
     return (
-        <Modal
-            show={mostrar}
-            onHide={handleCerrar}
-            backdrop="static"
-            keyboard={false}
-            centered
-        >
+      <Modal
+    show={mostrar}
+    onHide={handleCerrar}
+    centered
+    size="lg"
+>
             <Modal.Header closeButton>
                 <Modal.Title>
                     <i className="bi bi-person-plus me-2"></i>
@@ -79,82 +78,93 @@ const ModalRegistroCliente = ({
                 </Modal.Title>
             </Modal.Header>
 
-            <Modal.Body>
-                <Form>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Nombres <span className="text-danger">*</span></Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="nombres"
-                            placeholder="Ingrese los nombres"
-                            value={nuevoCliente.nombres}
-                            onChange={handleChange}
-                            disabled={deshabilitado}
-                        />
-                    </Form.Group>
+          <Modal.Body>
+    <Form>
+        <div className="row">
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Apellidos</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="apellidos"
-                            placeholder="Ingrese los apellidos"
-                            value={nuevoCliente.apellidos}
-                            onChange={handleChange}
-                            disabled={deshabilitado}
-                        />
-                    </Form.Group>
+            <div className="col-md-6">
+                <Form.Group className="mb-2">
+                    <Form.Label>Nombres *</Form.Label>
+                    <Form.Control
+                        size="sm"
+                        type="text"
+                        name="nombres"
+                        value={nuevoCliente.nombres}
+                        onChange={handleChange}
+                    />
+                </Form.Group>
+            </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Edad</Form.Label>
-                        <Form.Control
-                            type="number"
-                            name="edad"
-                            placeholder="Ingrese la edad"
-                            value={nuevoCliente.edad}
-                            onChange={handleChange}
-                            disabled={deshabilitado}
-                        />
-                    </Form.Group>
+            <div className="col-md-6">
+                <Form.Group className="mb-2">
+                    <Form.Label>Apellidos</Form.Label>
+                    <Form.Control
+                        size="sm"
+                        type="text"
+                        name="apellidos"
+                        value={nuevoCliente.apellidos}
+                        onChange={handleChange}
+                    />
+                </Form.Group>
+            </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Teléfono</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="telefono"
-                            placeholder="Ingrese el teléfono"
-                            value={nuevoCliente.telefono}
-                            onChange={handleChange}
-                            disabled={deshabilitado}
-                        />
-                    </Form.Group>
+            <div className="col-md-6">
+                <Form.Group className="mb-2">
+                    <Form.Label>Edad</Form.Label>
+                    <Form.Control
+                        size="sm"
+                        type="number"
+                        name="edad"
+                        value={nuevoCliente.edad}
+                        onChange={handleChange}
+                    />
+                </Form.Group>
+            </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Correo Electrónico</Form.Label>
-                        <Form.Control
-                            type="email"
-                            name="correo"
-                            placeholder="ejemplo@correo.com"
-                            value={nuevoCliente.correo}
-                            onChange={handleChange}
-                            disabled={deshabilitado}
-                        />
-                    </Form.Group>
+            <div className="col-md-6">
+                <Form.Group className="mb-2">
+                    <Form.Label>Teléfono</Form.Label>
+                    <Form.Control
+                        size="sm"
+                        type="text"
+                        name="telefono"
+                        value={nuevoCliente.telefono}
+                        onChange={handleChange}
+                    />
+                </Form.Group>
+            </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Estado</Form.Label>
-                        <Form.Select
-                            name="estado"
-                            value={nuevoCliente.estado}
-                            onChange={handleChange}
-                            disabled={deshabilitado}
-                        >
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </Form.Select>
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
+            <div className="col-md-6">
+                <Form.Group className="mb-2">
+                    <Form.Label>Correo</Form.Label>
+                    <Form.Control
+                        size="sm"
+                        type="email"
+                        name="correo"
+                        value={nuevoCliente.correo}
+                        onChange={handleChange}
+                    />
+                </Form.Group>
+            </div>
+
+            <div className="col-md-6">
+                <Form.Group className="mb-2">
+                    <Form.Label>Estado</Form.Label>
+                    <Form.Select
+                        size="sm"
+                        name="estado"
+                        value={nuevoCliente.estado}
+                        onChange={handleChange}
+                    >
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </Form.Select>
+                </Form.Group>
+            </div>
+
+        </div>
+    </Form>
+</Modal.Body>
 
             <Modal.Footer>
                 <Button

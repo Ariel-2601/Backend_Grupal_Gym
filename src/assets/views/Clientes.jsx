@@ -267,22 +267,26 @@ const handleBusqueda = (e) => {
   return (
     <Container className="mt-3">
       {/* Encabezado */}
-      <Row className="align-items-center mb-3">
-        <Col xs={9}>
-          <h3 className="mb-0">
-            <i className="bi bi-people-fill me-2"></i>
-            Clientes
-          </h3>
-        </Col>
+   <Row className="align-items-center mb-3">
+  <Col>
+    <h3 className="mb-0">
+      <i className="bi bi-people-fill me-2"></i>
+      Clientes
+    </h3>
+  </Col>
 
-        <Col xs={3} className="text-end">
-          <Button onClick={() => setMostrarModal(true)}>
-            <i className="bi bi-plus-lg"></i>
-
-            <span className="ms-2 d-none d-sm-inline">Nuevo Cliente</span>
-          </Button>
-        </Col>
-      </Row>
+  <Col xs="auto" className="ms-auto">
+    <Button
+      onClick={() => setMostrarModal(true)}
+      className="px-3"
+    >
+      <i className="bi bi-plus-lg"></i>
+      <span className="ms-2 d-none d-sm-inline">
+        Nuevo Cliente
+      </span>
+    </Button>
+  </Col>
+</Row>
 
       <hr />
 

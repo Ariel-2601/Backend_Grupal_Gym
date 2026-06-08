@@ -110,11 +110,12 @@ const ModalRegistroAsistencias = ({
 
   return (
 
-    <Modal
-      show={mostrar}
-      onHide={() => setMostrar(false)}
-      centered
-    >
+   <Modal
+  show={mostrar}
+  onHide={() => setMostrar(false)}
+  centered
+  size="lg"
+>
 
       <Form onSubmit={handleSubmit}>
 
@@ -128,163 +129,114 @@ const ModalRegistroAsistencias = ({
 
         </Modal.Header>
 
-        <Modal.Body>
+     <Modal.Body className="py-2">
 
-          {/* Cliente */}
+  <div className="row">
 
-          <Form.Group className="mb-3">
+    <div className="col-md-6">
+      <Form.Group className="mb-2">
+        <Form.Label>Cliente</Form.Label>
 
-            <Form.Label>
+        <Form.Select
+          size="sm"
+          value={idCliente}
+          onChange={(e) => setIdCliente(e.target.value)}
+          required
+        >
+          <option value="">
+            Seleccione un cliente
+          </option>
 
-              Cliente
-
-            </Form.Label>
-
-            <Form.Select
-              value={idCliente}
-              onChange={(e) =>
-                setIdCliente(
-                  e.target.value
-                )
-              }
-              required
+          {clientes.map((cliente) => (
+            <option
+              key={cliente.id_cliente}
+              value={cliente.id_cliente}
             >
+              {cliente.nombres} {cliente.apellidos}
+            </option>
+          ))}
+        </Form.Select>
+      </Form.Group>
+    </div>
 
-              <option value="">
-                Seleccione un cliente
-              </option>
+    <div className="col-md-6">
+      <Form.Group className="mb-2">
+        <Form.Label>Fecha</Form.Label>
 
-              {clientes.map((cliente) => (
+        <Form.Control
+          size="sm"
+          type="date"
+          value={fecha}
+          onChange={(e) => setFecha(e.target.value)}
+          required
+        />
+      </Form.Group>
+    </div>
 
-                <option
-                  key={cliente.id_cliente}
-                  value={cliente.id_cliente}
-                >
+    <div className="col-md-6">
+      <Form.Group className="mb-2">
+        <Form.Label>Hora Entrada</Form.Label>
 
-                  {cliente.nombres}{" "}
-                  {cliente.apellidos}
+        <Form.Control
+          size="sm"
+          type="time"
+          value={horaEntrada}
+          onChange={(e) => setHoraEntrada(e.target.value)}
+          required
+        />
+      </Form.Group>
+    </div>
 
-                </option>
-              ))}
+    <div className="col-md-6">
+      <Form.Group className="mb-2">
+        <Form.Label>Hora Salida</Form.Label>
 
-            </Form.Select>
+        <Form.Control
+          size="sm"
+          type="time"
+          value={horaSalida}
+          onChange={(e) => setHoraSalida(e.target.value)}
+        />
+      </Form.Group>
+    </div>
 
-          </Form.Group>
+    <div className="col-12">
+      <Form.Group className="mb-2">
+        <Form.Label>Observación</Form.Label>
 
-          {/* Fecha */}
+        <Form.Control
+          size="sm"
+          as="textarea"
+          rows={2}
+          value={observacion}
+          onChange={(e) => setObservacion(e.target.value)}
+        />
+      </Form.Group>
+    </div>
 
-          <Form.Group className="mb-3">
+  </div>
 
-            <Form.Label>
+</Modal.Body>
 
-              Fecha
+<Modal.Footer className="py-2">
 
-            </Form.Label>
+  <Button
+    variant="secondary"
+    size="sm"
+    onClick={() => setMostrar(false)}
+  >
+    Cancelar
+  </Button>
 
-            <Form.Control
-              type="date"
-              value={fecha}
-              onChange={(e) =>
-                setFecha(e.target.value)
-              }
-              required
-            />
+  <Button
+    variant="success"
+    size="sm"
+    type="submit"
+  >
+    Registrar
+  </Button>
 
-          </Form.Group>
-
-          {/* Hora entrada */}
-
-          <Form.Group className="mb-3">
-
-            <Form.Label>
-
-              Hora Entrada
-
-            </Form.Label>
-
-            <Form.Control
-              type="time"
-              value={horaEntrada}
-              onChange={(e) =>
-                setHoraEntrada(
-                  e.target.value
-                )
-              }
-              required
-            />
-
-          </Form.Group>
-
-          {/* Hora salida */}
-
-          <Form.Group className="mb-3">
-
-            <Form.Label>
-
-              Hora Salida
-
-            </Form.Label>
-
-            <Form.Control
-              type="time"
-              value={horaSalida}
-              onChange={(e) =>
-                setHoraSalida(
-                  e.target.value
-                )
-              }
-            />
-
-          </Form.Group>
-
-          {/* Observación */}
-
-          <Form.Group className="mb-3">
-
-            <Form.Label>
-
-              Observación
-
-            </Form.Label>
-
-            <Form.Control
-              as="textarea"
-              rows={3}
-              value={observacion}
-              onChange={(e) =>
-                setObservacion(
-                  e.target.value
-                )
-              }
-            />
-
-          </Form.Group>
-
-        </Modal.Body>
-
-        <Modal.Footer>
-
-          <Button
-            variant="secondary"
-            onClick={() =>
-              setMostrar(false)
-            }
-          >
-
-            Cancelar
-
-          </Button>
-
-          <Button
-            variant="success"
-            type="submit"
-          >
-
-            Registrar
-
-          </Button>
-
-        </Modal.Footer>
+</Modal.Footer>
 
       </Form>
 

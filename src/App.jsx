@@ -15,7 +15,7 @@ import Asistencias from "./assets/views/Asistencias";
 import Ventas from "./assets/views/Ventas";
 import Productos from "./assets/views/Productos";
 import Catalogo from "./assets/views/Catalogo";
-
+import MembresiasClientes from "./assets/views/MembresiasClientes";
 
 import Login from "./assets/views/Login";
 
@@ -81,6 +81,19 @@ const App = () => {
             element={
               <RutaProtegida>
                 <Membresias />
+              </RutaProtegida>
+            }
+          />
+
+          {/* =========================
+              ✅ PASO 2: Nueva ruta Membresías Clientes
+          ========================= */}
+
+          <Route
+            path="/membresias-clientes"
+            element={
+              <RutaProtegida>
+                <MembresiasClientes />
               </RutaProtegida>
             }
           />
