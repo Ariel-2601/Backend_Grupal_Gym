@@ -147,21 +147,6 @@ const ModalRegistroCliente = ({
                 </Form.Group>
             </div>
 
-            <div className="col-md-6">
-                <Form.Group className="mb-2">
-                    <Form.Label>Estado</Form.Label>
-                    <Form.Select
-                        size="sm"
-                        name="estado"
-                        value={nuevoCliente.estado}
-                        onChange={handleChange}
-                    >
-                        <option value="Activo">Activo</option>
-                        <option value="Inactivo">Inactivo</option>
-                    </Form.Select>
-                </Form.Group>
-            </div>
-
         </div>
     </Form>
 </Modal.Body>

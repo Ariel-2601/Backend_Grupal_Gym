@@ -32,7 +32,7 @@ const FormularioLogin = ({
                                 {logo ? (
                                     <img
                                         src={logo}
-                                        alt="GymLiveFitness"
+                                        alt="LiveFitnessGym"
                                         className="mb-3"
                                         style={{ width: "140px", height: "auto" }}
                                     />
@@ -42,7 +42,7 @@ const FormularioLogin = ({
                                     </div>
                                 )}
 
-                                <h2 className="fw-bold text-dark mb-1">GymLiveFitness</h2>
+                                <h2 className="fw-bold text-dark mb-1">LiveFitnessGym</h2>
                                 <p className="text-muted mb-0">
                                     Gestión Inteligente • Entrenamiento Elite
                                 </p>
@@ -128,7 +128,7 @@ const FormularioLogin = ({
                     </Card>
 
                     <div className="text-center mt-4">
-                        <small className="text-muted">© 2026 GymLiveFitness - Todos los derechos reservados</small>
+                        <small className="text-muted">© 2026 LiveFitnessGym - Todos los derechos reservados</small>
                     </div>
                 </div>
             </div>

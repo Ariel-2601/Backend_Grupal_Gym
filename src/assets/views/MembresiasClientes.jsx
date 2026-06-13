@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "../database/supabaseconfig";
 import { Table, Button, Modal, Form, Badge, Spinner, Row, Col, Card } from "react-bootstrap";
 
@@ -18,6 +19,10 @@ export default function MembresiasClientes() {
   const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
   const [membresiaEliminar, setMembresiaEliminar] = useState(null);
 
+  const [searchParams] = useSearchParams();
+  const clienteIdParam = searchParams.get("cliente_id");
+  const nombreParam = searchParams.get("nombre");
+
   const [nuevaMembresia, setNuevaMembresia] = useState({
     cliente_id: "",
     membresia_id: "",
@@ -26,7 +31,6 @@ export default function MembresiasClientes() {
     estado: "Activa",
   });
 
-  // ==================== DETECTAR TAMAÑO DE PANTALLA ====================
   useEffect(() => {
     const handleResize = () => setEsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
@@ -39,7 +43,16 @@ export default function MembresiasClientes() {
     fetchMembresias();
   }, []);
 
-  // ==================== CARGAR DATOS ====================
+  useEffect(() => {
+    if (clienteIdParam) {
+      setNuevaMembresia((prev) => ({
+        ...prev,
+        cliente_id: clienteIdParam,
+      }));
+      setMostrarModal(true);
+    }
+  }, [clienteIdParam]);
+
   async function fetchMembresiasClientes() {
     try {
       setLoading(true);
@@ -84,6 +97,8 @@ export default function MembresiasClientes() {
     const resultado = await Promise.all(
       data.map(async (item) => {
         const dias = calcularDiasRestantes(item.fecha_vencimiento);
+
+        // Si la membresía está vencida (días < 0), actualizar estado a "Vencida"
         if (
           dias !== null &&
           dias < 0 &&
@@ -94,8 +109,34 @@ export default function MembresiasClientes() {
             .from("membresias_clientes")
             .update({ estado: "Vencida" })
             .eq("id", item.id);
-          return { ...item, estado: "Vencida" };
+          item.estado = "Vencida";
         }
+
+        // Si la membresía lleva más de 15 días vencida, inactivar al cliente
+        if (
+          dias !== null &&
+          dias < -15 &&
+          item.clientes?.id_cliente &&
+          item.estado === "Vencida"
+        ) {
+          // Verificar si el cliente tiene alguna membresía activa
+          const { data: membresiasActivas } = await supabase
+            .from("membresias_clientes")
+            .select("id, estado")
+            .eq("cliente_id", item.clientes.id_cliente)
+            .in("estado", ["Activa", "Pendiente"]);
+
+          // Solo inactivar si no tiene otras membresías activas
+          if (!membresiasActivas || membresiasActivas.length === 0) {
+            await supabase
+              .from("clientes")
+              .update({ estado: "Inactivo" })
+              .eq("id_cliente", item.clientes.id_cliente);
+
+            console.log(`🚫 Cliente inactivado: ${item.clientes.nombres} ${item.clientes.apellidos} (ID: ${item.clientes.id_cliente}) - Membresía vencida hace ${Math.abs(dias)} días`);
+          }
+        }
+
         return item;
       })
     );
@@ -117,7 +158,6 @@ export default function MembresiasClientes() {
     setMembresias(data || []);
   }
 
-  // ==================== EDITAR ====================
   function abrirEditar(item) {
     setMembresiaEditando({
       id: item.id,
@@ -157,7 +197,6 @@ export default function MembresiasClientes() {
     fetchMembresiasClientes();
   }
 
-  // ==================== ELIMINAR ====================
   function abrirEliminar(item) {
     setMembresiaEliminar(item);
     setMostrarModalEliminar(true);
@@ -179,7 +218,6 @@ export default function MembresiasClientes() {
     fetchMembresiasClientes();
   }
 
-  // ==================== GUARDAR NUEVA MEMBRESÍA ====================
   const handleMembresiaChange = (e) => {
     const membresiaId = e.target.value;
     const membresiaSeleccionada = membresias.find(
@@ -232,14 +270,29 @@ export default function MembresiasClientes() {
     });
   }
 
-  // ==================== FUNCIONES AUXILIARES ====================
+  // ==================== CORREGIDO: calcularDiasRestantes ====================
   function calcularDiasRestantes(fechaVencimiento) {
     if (!fechaVencimiento) return null;
+
+    // Obtener fecha actual en formato YYYY-MM-DD sin hora
     const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const venc = new Date(fechaVencimiento);
-    const diff = Math.ceil((venc - hoy) / (1000 * 60 * 60 * 24));
-    return diff;
+    const hoyStr = hoy.toISOString().split("T")[0];
+
+    // Crear fechas usando solo la parte de la fecha (sin hora) para evitar problemas de zona horaria
+    const [anioHoy, mesHoy, diaHoy] = hoyStr.split("-").map(Number);
+    const [anioVenc, mesVenc, diaVenc] = fechaVencimiento.split("-").map(Number);
+
+    // Crear fechas en UTC para evitar desfases
+    const fechaHoy = Date.UTC(anioHoy, mesHoy - 1, diaHoy);
+    const fechaVenc = Date.UTC(anioVenc, mesVenc - 1, diaVenc);
+
+    // Diferencia en milisegundos
+    const diffMs = fechaVenc - fechaHoy;
+
+    // Convertir a días (redondear hacia abajo para días completos)
+    const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    return diffDias;
   }
 
   function formatearFecha(fecha) {
@@ -279,37 +332,30 @@ export default function MembresiasClientes() {
     );
   }
 
- // ==================== BOTONES DE ACCIÓN ====================
-function BotonesAccion({ item }) {
-  return (
-    <div className="text-center">
+  function BotonesAccion({ item }) {
+    return (
+      <div className="text-center">
+        <Button
+          variant="warning"
+          size="sm"
+          className="me-2"
+          title="Editar"
+          onClick={() => abrirEditar(item)}
+        >
+          <i className="bi bi-pencil-square"></i>
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
+          title="Eliminar"
+          onClick={() => abrirEliminar(item)}
+        >
+          <i className="bi bi-trash"></i>
+        </Button>
+      </div>
+    );
+  }
 
-      {/* EDITAR */}
-      <Button
-        variant="warning"
-        size="sm"
-        className="me-2"
-        title="Editar"
-        onClick={() => abrirEditar(item)}
-      >
-        <i className="bi bi-pencil-square"></i>
-      </Button>
-
-      {/* ELIMINAR */}
-      <Button
-        variant="danger"
-        size="sm"
-        title="Eliminar"
-        onClick={() => abrirEliminar(item)}
-      >
-        <i className="bi bi-trash"></i>
-      </Button>
-
-    </div>
-  );
-}
-
-  // ==================== TARJETA MÓVIL ====================
   function TarjetaMembresia({ item }) {
     const dias = calcularDiasRestantes(item.fecha_vencimiento);
     const estadoReal =
@@ -328,30 +374,24 @@ function BotonesAccion({ item }) {
       <Col xs={12} sm={6} className="mb-3">
         <Card className="h-100 shadow-sm border-0">
           <Card.Body>
-
             <div className="text-center mb-3">
               <i className="bi bi-person-badge-fill" style={{
                 fontSize: "4rem",
                 color: iconoColor[estadoReal] || "#0d6efd",
               }}></i>
             </div>
-
             <Card.Title className="text-center fw-bold mb-3">
               {item.clientes?.nombres} {item.clientes?.apellidos}
             </Card.Title>
-
             <hr />
-
             <p className="mb-2">
               <strong>Correo:</strong>{" "}
               <span className="text-muted">{item.clientes?.correo || "—"}</span>
             </p>
-
             <p className="mb-2">
               <strong>Membresía:</strong>{" "}
               {item.membresias?.nombre || "—"}
             </p>
-
             <p className="mb-2">
               <strong>Días:</strong>{" "}
               {dias === null ? "—" : dias < 0 ? (
@@ -362,23 +402,18 @@ function BotonesAccion({ item }) {
                 <Badge bg="success">{dias} días</Badge>
               )}
             </p>
-
             <p className="mb-0">
               <strong>Estado:</strong>{" "}
               {getEstadoBadge(estadoReal, item.fecha_vencimiento)}
             </p>
-
             <hr />
-
             <BotonesAccion item={item} />
-
           </Card.Body>
         </Card>
       </Col>
     );
   }
 
-  // ==================== FILTRADO ====================
   const datosFiltrados = membresiasClientes.filter((item) => {
     const nombreCompleto =
       `${item.clientes?.nombres ?? ""} ${item.clientes?.apellidos ?? ""}`.toLowerCase();
@@ -397,11 +432,9 @@ function BotonesAccion({ item }) {
     return coincideBusqueda && coincideEstado;
   });
 
-  // ==================== RENDER ====================
   return (
     <div className="container-fluid py-4">
 
-      {/* Encabezado */}
       <div className="mb-4">
         <h1 style={{ fontSize: "26px", fontWeight: 700, color: "#1e3a5f", margin: 0 }}>
           👥 Membresías de Clientes
@@ -411,7 +444,6 @@ function BotonesAccion({ item }) {
         </p>
       </div>
 
-      {/* Controles */}
       <div style={{ display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" }}>
         <input
           type="text"
@@ -428,7 +460,7 @@ function BotonesAccion({ item }) {
         />
 
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {["Todos", "Activa", "Vencida", "Pendiente", "Cancelada"].map((est) => (
+          {["Todos", "Activa", "Vencida"].map((est) => (
             <Button
               key={est}
               onClick={() => setFiltroEstado(est)}
@@ -448,7 +480,7 @@ function BotonesAccion({ item }) {
         </div>
 
         <div style={{ display: "flex", gap: "8px" }}>
-          <Button variant="success" onClick={() => setMostrarModal(true)}>
+          <Button variant="success" onClick={() => setMostrarModal(true)} style={{ display: "none" }}>
             <i className="bi bi-plus-circle me-2"></i>
             Nueva Membresía
           </Button>
@@ -467,7 +499,6 @@ function BotonesAccion({ item }) {
         </div>
       </div>
 
-      {/* Contenido principal */}
       {loading ? (
         <div className="text-center py-5">
           <Spinner animation="border" variant="primary" />
@@ -476,7 +507,6 @@ function BotonesAccion({ item }) {
       ) : error ? (
         <div className="alert alert-danger">{error}</div>
       ) : esMobile ? (
-        // ==================== VISTA MÓVIL: TARJETAS ====================
         <Row>
           {datosFiltrados.length === 0 ? (
             <Col xs={12}>
@@ -492,7 +522,6 @@ function BotonesAccion({ item }) {
           )}
         </Row>
       ) : (
-        // ==================== VISTA DESKTOP: TABLA ====================
         <Table striped bordered hover responsive className="align-middle shadow-sm">
           <thead className="table-dark">
             <tr>
@@ -505,9 +534,7 @@ function BotonesAccion({ item }) {
               <th>Vencimiento</th>
               <th>Días</th>
               <th>Estado</th>
-              <th className="text-center" style={{ width: "150px" }}>
-  Acciones
-</th>
+              <th className="text-center" style={{ width: "150px" }}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -539,9 +566,9 @@ function BotonesAccion({ item }) {
                       )}
                     </td>
                     <td>{getEstadoBadge(item.estado, item.fecha_vencimiento)}</td>
-                   <td className="text-center">
-  <BotonesAccion item={item} />
-</td>
+                    <td className="text-center">
+                      <BotonesAccion item={item} />
+                    </td>
                   </tr>
                 );
               })
@@ -550,10 +577,11 @@ function BotonesAccion({ item }) {
         </Table>
       )}
 
-      {/* ==================== MODAL NUEVA MEMBRESÍA ==================== */}
       <Modal show={mostrarModal} onHide={() => { setMostrarModal(false); resetFormulario(); }} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Nueva Membresía</Modal.Title>
+          <Modal.Title>
+            {nombreParam ? `Nueva Membresía — ${decodeURIComponent(nombreParam)}` : "Nueva Membresía"}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Group className="mb-3">
@@ -561,6 +589,7 @@ function BotonesAccion({ item }) {
             <Form.Select
               value={nuevaMembresia.cliente_id}
               onChange={(e) => setNuevaMembresia({ ...nuevaMembresia, cliente_id: e.target.value })}
+              disabled={!!clienteIdParam}
             >
               <option value="">Seleccione un cliente</option>
               {clientes.map((cliente) => (
@@ -600,7 +629,6 @@ function BotonesAccion({ item }) {
         </Modal.Footer>
       </Modal>
 
-      {/* ==================== MODAL EDITAR ==================== */}
       <Modal show={mostrarModalEditar} onHide={() => { setMostrarModalEditar(false); setMembresiaEditando(null); }} centered>
         <Modal.Header closeButton>
           <Modal.Title>✏️ Editar Membresía</Modal.Title>
@@ -664,7 +692,6 @@ function BotonesAccion({ item }) {
         </Modal.Footer>
       </Modal>
 
-      {/* ==================== MODAL CONFIRMAR ELIMINAR ==================== */}
       <Modal show={mostrarModalEliminar} onHide={() => { setMostrarModalEliminar(false); setMembresiaEliminar(null); }} centered>
         <Modal.Header closeButton>
           <Modal.Title>🗑️ Eliminar Membresía</Modal.Title>
@@ -707,7 +734,6 @@ function BotonesAccion({ item }) {
         </Modal.Footer>
       </Modal>
 
-      {/* ==================== ANIMACIÓN ÉXITO ==================== */}
       {mostrarExito && (
         <div style={{
           position: "fixed",

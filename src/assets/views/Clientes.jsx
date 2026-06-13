@@ -1,6 +1,6 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import React, { useState, useEffect } from "react";
 
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { supabase } from "../database/supabaseconfig";
 
@@ -18,29 +18,15 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 const Clientes = () => {
-  // =========================
-  // Estados
-  // =========================
-
   const [mostrarModal, setMostrarModal] = useState(false);
-
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
-
   const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
-
   const [clientes, setClientes] = useState([]);
-
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-
   const [cargando, setCargando] = useState(false);
-
   const [textoBusqueda, setTextoBusqueda] = useState("");
-
-const [clientesFiltrados, setClientesFiltrados] = useState([]);
-
-  // =========================
-  // Toast
-  // =========================
+  const [clientesFiltrados, setClientesFiltrados] = useState([]);
+  const navigate = useNavigate();
 
   const [toast, setToast] = useState({
     mostrar: false,
@@ -48,26 +34,18 @@ const [clientesFiltrados, setClientesFiltrados] = useState([]);
     tipo: "",
   });
 
-  // =========================
-  // Cargar clientes
-  // =========================
-
   const cargarClientes = async () => {
     try {
       setCargando(true);
-
       const { data, error } = await supabase
         .from("clientes")
         .select("*")
         .order("id_cliente", { ascending: true });
-
       if (error) throw error;
-
-setClientes(data || []);
-setClientesFiltrados(data || []);
+      setClientes(data || []);
+      setClientesFiltrados(data || []);
     } catch (error) {
       console.log("Error al cargar clientes:", error);
-
       setToast({
         mostrar: true,
         mensaje: "Error al cargar clientes.",
@@ -78,10 +56,6 @@ setClientesFiltrados(data || []);
     }
   };
 
-  // =========================
-  // Agregar cliente
-  // =========================
-
   const agregarCliente = async (nuevoCliente) => {
     try {
       if (!nuevoCliente.nombres.trim()) {
@@ -90,20 +64,21 @@ setClientesFiltrados(data || []);
           mensaje: "Debe ingresar el nombre.",
           tipo: "warning",
         });
-
         return;
       }
 
-      const { error } = await supabase.from("clientes").insert([
-        {
+      const { data, error } = await supabase
+        .from("clientes")
+        .insert([{
           nombres: nuevoCliente.nombres,
           apellidos: nuevoCliente.apellidos,
           edad: nuevoCliente.edad,
           telefono: nuevoCliente.telefono,
           correo: nuevoCliente.correo,
           estado: nuevoCliente.estado,
-        },
-      ]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -114,11 +89,12 @@ setClientesFiltrados(data || []);
       });
 
       setMostrarModal(false);
-
       await cargarClientes();
+
+      navigate(`/membresias-clientes?cliente_id=${data.id_cliente}&nombre=${encodeURIComponent(data.nombres + " " + data.apellidos)}`);
+
     } catch (error) {
       console.log("Error al registrar:", error);
-
       setToast({
         mostrar: true,
         mensaje: "Error al registrar cliente.",
@@ -126,10 +102,6 @@ setClientesFiltrados(data || []);
       });
     }
   };
-
-  // =========================
-  // Actualizar cliente
-  // =========================
 
   const actualizarCliente = async (clienteActualizado) => {
     try {
@@ -144,21 +116,16 @@ setClientesFiltrados(data || []);
           estado: clienteActualizado.estado,
         })
         .eq("id_cliente", clienteActualizado.id_cliente);
-
       if (error) throw error;
-
-      // ✅ ÉXITO
       setToast({
         mostrar: true,
         mensaje: "Cliente actualizado correctamente.",
-        tipo: "success", // ← Debe ser "success"
+        tipo: "success",
       });
-
       setMostrarModalEdicion(false);
       await cargarClientes();
     } catch (error) {
       console.error("Error al actualizar:", error);
-
       setToast({
         mostrar: true,
         mensaje: "Error al actualizar cliente.",
@@ -167,44 +134,44 @@ setClientesFiltrados(data || []);
     }
   };
 
-const generarPDFCliente = (cliente) => {
-
-  const doc = new jsPDF();
-
-  // Título
-  doc.setFontSize(18);
-  doc.text("Reporte de Cliente", 14, 20);
-
-  // Línea decorativa
-  doc.line(14, 25, 195, 25);
-
-  // Tabla información
-  autoTable(doc, {
-    startY: 35,
-    head: [["Campo", "Valor"]],
-    body: [
-      ["ID", cliente.id_cliente],
-      ["Nombres", cliente.nombres],
-      ["Apellidos", cliente.apellidos],
-      ["Edad", cliente.edad],
-      ["Teléfono", cliente.telefono],
-      ["Correo", cliente.correo],
-      ["Estado", cliente.estado],
-    ],
-  });
-
-  // Descargar PDF
-  doc.save(`cliente_${cliente.id_cliente}.pdf`);
-};
-
-
+  const generarPDFCliente = (cliente) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Reporte de Cliente", 14, 20);
+    doc.line(14, 25, 195, 25);
+    autoTable(doc, {
+      startY: 35,
+      head: [["Campo", "Valor"]],
+      body: [
+        ["ID", cliente.id_cliente],
+        ["Nombres", cliente.nombres],
+        ["Apellidos", cliente.apellidos],
+        ["Edad", cliente.edad],
+        ["Teléfono", cliente.telefono],
+        ["Correo", cliente.correo],
+        ["Estado", cliente.estado],
+      ],
+    });
+    doc.save(`cliente_${cliente.id_cliente}.pdf`);
+  };
 
   // =========================
-  // Eliminar cliente
+  // Eliminar cliente + membresías
   // =========================
-
   const eliminarCliente = async (id) => {
     try {
+      // 1. Primero eliminar las membresías asociadas al cliente
+      const { error: errorMembresias } = await supabase
+        .from("membresias_clientes")
+        .delete()
+        .eq("cliente_id", id);
+
+      if (errorMembresias) {
+        console.log("Error al eliminar membresías:", errorMembresias);
+        throw new Error("Error al eliminar membresías del cliente");
+      }
+
+      // 2. Luego eliminar el cliente
       const { error } = await supabase
         .from("clientes")
         .delete()
@@ -212,163 +179,108 @@ const generarPDFCliente = (cliente) => {
 
       if (error) throw error;
 
-      setToast({
-        mostrar: true,
-        mensaje: "Cliente eliminado correctamente.",
-        tipo: "success",
-      });
-
-      setMostrarModalEliminacion(false);
-
+      // El toast se maneja desde el modal (animación de éxito)
+      // Pero por si acaso, actualizamos la lista
       await cargarClientes();
+
+      return true; // Éxito
     } catch (error) {
       console.log(error);
-
       setToast({
         mostrar: true,
-        mensaje: "Error al eliminar cliente.",
+        mensaje: "Error al eliminar cliente y sus membresías.",
         tipo: "danger",
       });
+      return false; // Error
     }
   };
 
-  // =========================
-// Buscar clientes
-// =========================
-
-const handleBusqueda = (e) => {
-  const texto = e.target.value;
-
-  setTextoBusqueda(texto);
-
-  const resultados = clientes.filter((cliente) =>
-    cliente.nombres.toLowerCase().includes(texto.toLowerCase()) ||
-    cliente.apellidos.toLowerCase().includes(texto.toLowerCase()) ||
-    cliente.correo.toLowerCase().includes(texto.toLowerCase())
-  );
-
-  setClientesFiltrados(resultados);
-};
-
-
-
-  // =========================
-  // useEffect
-  // =========================
+  const handleBusqueda = (e) => {
+    const texto = e.target.value;
+    setTextoBusqueda(texto);
+    const resultados = clientes.filter((cliente) =>
+      cliente.nombres.toLowerCase().includes(texto.toLowerCase()) ||
+      cliente.apellidos.toLowerCase().includes(texto.toLowerCase()) ||
+      cliente.correo.toLowerCase().includes(texto.toLowerCase())
+    );
+    setClientesFiltrados(resultados);
+  };
 
   useEffect(() => {
     cargarClientes();
   }, []);
 
-  // =========================
-  // Render
-  // =========================
-
   return (
     <Container className="mt-3">
-      {/* Encabezado */}
-   <Row className="align-items-center mb-3">
-  <Col>
-    <h3 className="mb-0">
-      <i className="bi bi-people-fill me-2"></i>
-      Clientes
-    </h3>
-  </Col>
-
-  <Col xs="auto" className="ms-auto">
-    <Button
-      onClick={() => setMostrarModal(true)}
-      className="px-3"
-    >
-      <i className="bi bi-plus-lg"></i>
-      <span className="ms-2 d-none d-sm-inline">
-        Nuevo Cliente
-      </span>
-    </Button>
-  </Col>
-</Row>
-
+      <Row className="align-items-center mb-3">
+        <Col>
+          <h3 className="mb-0">
+            <i className="bi bi-people-fill me-2"></i>
+            Clientes
+          </h3>
+        </Col>
+        <Col xs="auto" className="ms-auto">
+          <Button onClick={() => setMostrarModal(true)} className="px-3">
+            <i className="bi bi-plus-lg"></i>
+            <span className="ms-2 d-none d-sm-inline">Nuevo Cliente</span>
+          </Button>
+        </Col>
+      </Row>
       <hr />
-
-      <CuadroBusquedas
-  textoBusqueda={textoBusqueda}
-  onChange={handleBusqueda}
-/>
-
-{
-  clientesFiltrados.length === 0 && (
-    <Alert variant="danger">
-      No se encontraron clientes.
-    </Alert>
-  )
-}
-{/* TARJETAS → SOLO EN MÓVIL */}
-<div className="d-block d-lg-none">
-  <TarjetaClientes
-    clientes={clientesFiltrados}
-    onEditar={(cliente) => {
-      setClienteSeleccionado(cliente);
-      setMostrarModalEdicion(true);
-    }}
-    onEliminar={(cliente) => {
-      setClienteSeleccionado(cliente);
-      setMostrarModalEliminacion(true);
-    }}
-  />
-</div>
-
-
-
-{/* TABLA → SOLO EN PANTALLAS GRANDES */}
-<div className="d-none d-lg-block">
-<TablaClientes
-  clientes={clientesFiltrados}
-  cargando={cargando}
-  generarPDFCliente={generarPDFCliente}
-  onEditar={(cliente) => {
-    setClienteSeleccionado(cliente);
-    setMostrarModalEdicion(true);
-  }}
-  onEliminar={(cliente) => {
-    setClienteSeleccionado(cliente);
-    setMostrarModalEliminacion(true);
-  }}
-/>
-</div>
-      {/* Modal Registro */}
+      <CuadroBusquedas textoBusqueda={textoBusqueda} onChange={handleBusqueda} />
+      {clientesFiltrados.length === 0 && (
+        <Alert variant="danger">No se encontraron clientes.</Alert>
+      )}
+      <div className="d-block d-lg-none">
+        <TarjetaClientes
+          clientes={clientesFiltrados}
+          onEditar={(cliente) => {
+            setClienteSeleccionado(cliente);
+            setMostrarModalEdicion(true);
+          }}
+          onEliminar={(cliente) => {
+            setClienteSeleccionado(cliente);
+            setMostrarModalEliminacion(true);
+          }}
+        />
+      </div>
+      <div className="d-none d-lg-block">
+        <TablaClientes
+          clientes={clientesFiltrados}
+          cargando={cargando}
+          generarPDFCliente={generarPDFCliente}
+          onEditar={(cliente) => {
+            setClienteSeleccionado(cliente);
+            setMostrarModalEdicion(true);
+          }}
+          onEliminar={(cliente) => {
+            setClienteSeleccionado(cliente);
+            setMostrarModalEliminacion(true);
+          }}
+        />
+      </div>
       <ModalRegistroCliente
         mostrar={mostrarModal}
         setMostrar={setMostrarModal}
         agregarCliente={agregarCliente}
       />
-
-      {/* Modal Edición */}
       <ModalEdicionClientes
         mostrar={mostrarModalEdicion}
         setMostrar={setMostrarModalEdicion}
         cliente={clienteSeleccionado}
         actualizarCliente={actualizarCliente}
       />
-
-      {/* Modal Eliminación */}
       <ModalEliminacionCliente
         mostrar={mostrarModalEliminacion}
         setMostrar={setMostrarModalEliminacion}
         cliente={clienteSeleccionado}
         eliminarCliente={eliminarCliente}
       />
-
-      {/* Toast */}
       <NotificacionOperacion
         mostrar={toast.mostrar}
         mensaje={toast.mensaje}
         tipo={toast.tipo}
-        onCerrar={() =>
-          setToast({
-            ...toast,
-            mostrar: false,
-          })
-        }
+        onCerrar={() => setToast({ ...toast, mostrar: false })}
       />
     </Container>
   );

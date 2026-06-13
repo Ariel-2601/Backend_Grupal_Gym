@@ -20,6 +20,7 @@ const Catalogo = () => {
 
     const [mostrarModal, setMostrarModal] = useState(false);
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [busqueda, setBusqueda] = useState("");
 
     const obtenerProductos = async () => {
 
@@ -47,6 +48,17 @@ const Catalogo = () => {
         obtenerProductos();
     }, []);
 
+    // Filtrar productos según búsqueda
+    const productosFiltrados = productos.filter((producto) => {
+        const textoBusqueda = busqueda.toLowerCase().trim();
+        if (!textoBusqueda) return true;
+
+        const nombre = (producto.nombre_producto || "").toLowerCase();
+        const categoria = (producto.categoria_producto || "").toLowerCase();
+
+        return nombre.includes(textoBusqueda) || categoria.includes(textoBusqueda);
+    });
+
     if (cargando) {
         return (
             <div className="text-center py-5">
@@ -62,9 +74,78 @@ const Catalogo = () => {
                 Catálogo de Productos
             </h1>
 
+            {/* Cuadro de búsqueda */}
+            <div className="d-flex justify-content-center mb-4">
+                <div className="position-relative" style={{ width: "100%", maxWidth: "500px" }}>
+                    <span 
+                        className="position-absolute" 
+                        style={{ 
+                            left: "16px", 
+                            top: "50%", 
+                            transform: "translateY(-50%)",
+                            fontSize: "18px",
+                            color: "#94a3b8",
+                            pointerEvents: "none"
+                        }}
+                    >
+                        🔍
+                    </span>
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre o categoría..."
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        className="form-control"
+                        style={{
+                            padding: "12px 16px 12px 48px",
+                            borderRadius: "12px",
+                            border: "1px solid #e2e8f0",
+                            fontSize: "15px",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                            transition: "all 0.2s ease",
+                        }}
+                        onFocus={(e) => {
+                            e.target.style.borderColor = "#4F46E5";
+                            e.target.style.boxShadow = "0 2px 12px rgba(79, 70, 229, 0.15)";
+                        }}
+                        onBlur={(e) => {
+                            e.target.style.borderColor = "#e2e8f0";
+                            e.target.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
+                        }}
+                    />
+                    {busqueda && (
+                        <button
+                            onClick={() => setBusqueda("")}
+                            className="position-absolute"
+                            style={{
+                                right: "12px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                background: "none",
+                                border: "none",
+                                fontSize: "16px",
+                                color: "#94a3b8",
+                                cursor: "pointer",
+                                padding: "4px",
+                            }}
+                        >
+                            ✕
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Contador de resultados */}
+            {busqueda && (
+                <p className="text-center text-muted mb-4" style={{ fontSize: "14px" }}>
+                    {productosFiltrados.length} {productosFiltrados.length === 1 ? "producto encontrado" : "productos encontrados"} 
+                    {productosFiltrados.length !== productos.length && ` de ${productos.length}`}
+                </p>
+            )}
+
             <Row>
 
-                {productos.map((producto) => (
+                {productosFiltrados.map((producto) => (
 
                     <Col
                         key={producto.id_producto}
@@ -135,6 +216,17 @@ const Catalogo = () => {
 
                 ))}
 
+                {productosFiltrados.length === 0 && !cargando && (
+                    <Col xs={12} className="text-center py-5">
+                        <div style={{ fontSize: "48px", marginBottom: "16px" }}>📭</div>
+                        <h4 style={{ color: "#64748b", fontWeight: 600, marginBottom: "8px" }}>
+                            No se encontraron productos
+                        </h4>
+                        <p style={{ color: "#94a3b8", fontSize: "15px" }}>
+                            Intenta con otro término de búsqueda
+                        </p>
+                    </Col>
+                )}
             </Row>
 
             <Modal
