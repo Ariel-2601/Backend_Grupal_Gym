@@ -408,11 +408,131 @@ const styles = {
         alignItems: "center",
         gap: "8px",
     },
+    powerBiContainer: {
+        background: theme.bgCard,
+        borderRadius: "16px",
+        boxShadow: theme.shadowSoft,
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: theme.border,
+        overflow: "hidden",
+        marginBottom: "28px",
+    },
+    powerBiHeader: {
+        padding: "20px 24px",
+        borderBottom: `1px solid ${theme.border}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: "12px",
+    },
+    powerBiTitle: {
+        fontSize: "16px",
+        fontWeight: 700,
+        color: theme.text,
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+    },
+    powerBiBadge: {
+        background: `${theme.primary}15`,
+        color: theme.primary,
+        fontSize: "11px",
+        fontWeight: 700,
+        padding: "4px 12px",
+        borderRadius: "20px",
+        border: `1px solid ${theme.primary}30`,
+    },
+    powerBiFooter: {
+        padding: "12px 24px",
+        borderTop: `1px solid ${theme.border}`,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "8px",
+    },
+    powerBiFooterText: {
+        fontSize: "12px",
+        color: theme.textSubtle,
+    },
+    powerBiButton: {
+        background: theme.primary,
+        border: "none",
+        fontWeight: 600,
+        padding: "6px 16px",
+        borderRadius: "8px",
+        color: "#fff",
+        fontSize: "12px",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+    },
+    paginationContainer: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "12px",
+        marginTop: "32px",
+        marginBottom: "32px",
+        padding: "16px",
+        background: theme.bgCard,
+        borderRadius: "16px",
+        boxShadow: theme.shadowSoft,
+        border: `1px solid ${theme.border}`,
+        position: "sticky",
+        bottom: "20px",
+        zIndex: 100,
+    },
+    paginationButton: {
+        padding: "10px 20px",
+        borderRadius: "12px",
+        border: `1px solid ${theme.border}`,
+        background: theme.bgCard,
+        color: theme.text,
+        cursor: "pointer",
+        fontSize: "14px",
+        fontWeight: 600,
+        transition: "all 0.2s ease",
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+    },
+    paginationButtonDisabled: {
+        background: theme.bgElevated,
+        color: theme.textSubtle,
+        cursor: "not-allowed",
+    },
+    paginationNumber: {
+        minWidth: "40px",
+        height: "40px",
+        borderRadius: "12px",
+        border: `1px solid ${theme.border}`,
+        background: theme.bgCard,
+        color: theme.textMuted,
+        cursor: "pointer",
+        fontSize: "13px",
+        fontWeight: 700,
+        transition: "all 0.2s ease",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "4px",
+        padding: "0 12px",
+    },
+    paginationNumberActive: {
+        border: `1px solid ${theme.primary}`,
+        background: theme.primary,
+        color: "#fff",
+    },
+    paginationInfo: {
+        textAlign: "center",
+        marginBottom: "20px",
+        fontSize: "13px",
+        color: theme.textSubtle,
+        fontWeight: 500,
+    },
 };
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ═══ COMPONENTE CATÁLOGO MODAL ═════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════
 
 const CatalogoModal = () => {
     const [productos, setProductos] = useState([]);
@@ -867,6 +987,8 @@ const Dashboard = () => {
     const [mostrarAlertas, setMostrarAlertas] = useState(false);
     const [mostrarCatalogo, setMostrarCatalogo] = useState(false);
     const [hoveredCard, setHoveredCard] = useState(null);
+    
+    const [paginaDashboard, setPaginaDashboard] = useState(1);
 
     const [tasaCambio, setTasaCambio] = useState(36.5);
     const [editandoTasa, setEditandoTasa] = useState(false);
@@ -874,6 +996,13 @@ const Dashboard = () => {
     const hoy = hoyISO();
     const mesInicio = inicioMes();
     const mesFin = finMes();
+
+    const cambiarPaginaDashboard = (nuevaPagina) => {
+        if (nuevaPagina >= 1 && nuevaPagina <= totalPaginasDashboard) {
+            setPaginaDashboard(nuevaPagina);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    };
 
     const cargarDashboard = async () => {
         try {
@@ -1233,6 +1362,16 @@ const Dashboard = () => {
     };
 
     const totalAlertas = data.clientesPorVencer.length + data.productosStockBajo.length;
+    
+    const POWER_BI_URL = "https://app.powerbi.com/view?r=eyJrIjoiYTMwOGVjY2UtY2E1MC00OGRiLTlmZmMtM2NlZGYzNDlkZDcxIiwidCI6ImU0NzY0NmZlLWRhMjctNDUxOC04NDM2LTVmOGIxNThiYTEyNyIsImMiOjR9";
+    
+    const secciones = [
+        { id: 1, titulo: "Power BI", icono: "📊" },
+        { id: 2, titulo: "Hoy", icono: "📅" },
+        { id: 3, titulo: "General", icono: "📋" },
+        { id: 4, titulo: "Alertas", icono: "⚠️" },
+    ];
+    const totalPaginasDashboard = secciones.length;
 
     return (
         <div style={styles.page}>
@@ -1258,159 +1397,273 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <p style={styles.sectionLabel}>Hoy</p>
-            <div style={styles.grid}>
-                <div style={{...styles.card, ...(hoveredCard === 'asistencias' ? styles.cardHover : {})}}
-                    onMouseEnter={() => setHoveredCard('asistencias')}
-                    onMouseLeave={() => setHoveredCard(null)}>
-                    <div style={styles.cardGlow(metricColors.asistencias)} />
-                    <span style={styles.cardIcon(metricColors.asistencias)}>🏃</span>
-                    <div style={styles.cardLabel}>
-                        <span style={styles.dot(metricColors.asistencias)} />
-                        Asistencias
-                    </div>
-                    <div style={styles.cardValue(metricColors.asistencias)}>{val(data.asistenciasHoy)}</div>
-                    <div style={styles.cardSub}>personas hoy</div>
-                </div>
-
-                <div style={{...styles.card, ...(hoveredCard === 'ventas' ? styles.cardHover : {})}}
-                    onMouseEnter={() => setHoveredCard('ventas')}
-                    onMouseLeave={() => setHoveredCard(null)}>
-                    <div style={styles.cardGlow(metricColors.ventas)} />
-                    <span style={styles.cardIcon(metricColors.ventas)}>🛒</span>
-                    <div style={styles.cardLabel}>
-                        <span style={styles.dot(metricColors.ventas)} />
-                        Ventas del día
-                    </div>
-                    <div style={styles.cardValue(metricColors.ventas)}>{val(data.ventasHoy)}</div>
-                    <div style={styles.cardSub}>
-                        {cargando ? "—" : `$${data.ventasHoyTotal.toLocaleString()} en ventas`}
-                    </div>
-                </div>
-
-                <div style={{...styles.card, ...(hoveredCard === 'productos' ? styles.cardHover : {})}}
-                    onMouseEnter={() => setHoveredCard('productos')}
-                    onMouseLeave={() => setHoveredCard(null)}>
-                    <div style={styles.cardGlow(metricColors.productos)} />
-                    <span style={styles.cardIcon(metricColors.productos)}>📦</span>
-                    <div style={styles.cardLabel}>
-                        <span style={styles.dot(metricColors.productos)} />
-                        Productos vendidos
-                    </div>
-                    <div style={styles.cardValue(metricColors.productos)}>{val(data.productosVendidosHoy)}</div>
-                    <div style={styles.cardSub}>unidades despachadas hoy</div>
-                </div>
-
-                <div style={{...styles.card, ...(hoveredCard === 'ingresos' ? styles.cardHover : {})}}
-                    onMouseEnter={() => setHoveredCard('ingresos')}
-                    onMouseLeave={() => setHoveredCard(null)}
-                    onClick={() => setMostrarIngresos(true)}>
-                    <div style={styles.cardGlow(metricColors.ingresos)} />
-                    <span style={styles.cardIcon(metricColors.ingresos)}>💰</span>
-                    <div style={styles.cardLabel}>
-                        <span style={styles.dot(metricColors.ingresos)} />
-                        Ingresos del mes
-                    </div>
-                    <div style={{...styles.cardValue(metricColors.ingresos), fontSize: data.ingresosMes > 999999 ? "28px" : "36px"}}>
-                        C${val(data.ingresosMes.toLocaleString())}
-                    </div>
-                    <div style={styles.cardSub}>{mesLegible} · Click para ver detalle</div>
-                </div>
-            </div>
-
-            <p style={styles.sectionLabel}>General</p>
-            <div style={styles.grid2}>
-                <div style={{...styles.card, ...(hoveredCard === 'clientes' ? styles.cardHover : {})}}
-                    onMouseEnter={() => setHoveredCard('clientes')}
-                    onMouseLeave={() => setHoveredCard(null)}>
-                    <div style={styles.cardGlow(metricColors.clientes)} />
-                    <span style={styles.cardIcon(metricColors.clientes)}>👥</span>
-                    <div style={styles.cardLabel}>
-                        <span style={styles.dot(metricColors.clientes)} />
-                        Clientes totales
-                    </div>
-                    <div style={styles.cardValue(metricColors.clientes)}>{val(data.totalClientes)}</div>
-                    <div style={styles.cardSub}>
-                        <span style={styles.pill(theme.accent4)}>
-                            <span style={styles.dot(theme.accent4)} />
-                            {val(data.clientesActivos)} activos
-                        </span>
-                    </div>
-                </div>
-
-                <div style={{...styles.card, ...(hoveredCard === 'catalogo' ? styles.cardHover : {})}}
-                    onMouseEnter={() => setHoveredCard('catalogo')}
-                    onMouseLeave={() => setHoveredCard(null)}
-                    onClick={() => setMostrarCatalogo(true)}
-                    title="Click para ver catálogo completo">
-                    <div style={styles.cardGlow(metricColors.catalogo)} />
-                    <span style={styles.cardIcon(metricColors.catalogo)}>🏷️</span>
-                    <div style={styles.cardLabel}>
-                        <span style={styles.dot(metricColors.catalogo)} />
-                        Catálogo de productos
-                    </div>
-                    <div style={styles.cardValue(metricColors.catalogo)}>{val(data.totalProductos)}</div>
-                    <div style={styles.cardSub}>productos en sistema · Click para ver</div>
-                </div>
-
-                <div style={{...styles.heroCard, ...(hoveredCard === 'hero' ? { transform: "translateY(-3px) scale(1.01)" } : {})}}
-                    onMouseEnter={() => setHoveredCard('hero')}
-                    onMouseLeave={() => setHoveredCard(null)}
-                    onClick={() => setMostrarKPI(true)}>
-                    <div style={styles.heroCardGlow} />
-                    <div style={{ position: "relative", zIndex: 1 }}>
-                        <div style={styles.heroLabel}>💎 Ingresos del Mes</div>
-                        <h2 style={styles.heroValue}>C${data.ingresosMes.toLocaleString()}</h2>
-                        <p style={styles.heroSub}>Crecimiento de este mes · Click para ver KPIs</p>
-                    </div>
-                    <div style={{position: "absolute", bottom: "20px", right: "20px", fontSize: "60px", opacity: 0.06}}>📊</div>
-                </div>
-            </div>
-
-            <p style={styles.sectionLabel}>
-                <span style={{ color: theme.accent6 }}>⚠️ Alertas</span>
-            </p>
-            <div style={styles.grid}>
-                <div 
-                    style={{
-                        ...styles.alertCard, 
-                        ...(hoveredCard === 'alertas' ? styles.alertCardHover : {})
-                    }}
-                    onMouseEnter={() => setHoveredCard('alertas')}
-                    onMouseLeave={() => setHoveredCard(null)}
-                    onClick={() => setMostrarAlertas(true)}
-                    title="Click para ver todas las alertas"
-                >
-                    <div style={styles.alertCardGlow} />
-                    <div style={styles.alertBadge}>
-                        {totalAlertas} alerta{totalAlertas !== 1 ? 's' : ''}
-                    </div>
-                    <span style={{...styles.cardIcon(theme.accent6), fontSize: "28px"}}>🚨</span>
-
-                    <div style={styles.cardLabel}>
-                        <span style={{...styles.dot(theme.accent6), animation: "pulse 2s infinite"}} />
-                        Alertas del Sistema
-                    </div>
-
-                    <div style={styles.cardValue(theme.accent6)}>
-                        {val(totalAlertas)}
-                    </div>
-
-                    <div style={styles.cardSub}>
-                        {totalAlertas > 0 ? (
-                            <span>
-                                <span style={{color: theme.accent6, fontWeight: 700}}>
-                                    {data.clientesPorVencer.length}
-                                </span> membresías por vencer · 
-                                <span style={{color: theme.accent7, fontWeight: 700}}>
-                                    {data.productosStockBajo.length}
-                                </span> productos con stock bajo
+            {paginaDashboard === 1 && (
+                <div>
+                    <p style={styles.sectionLabel}>
+                        <span style={{ color: theme.primary }}>📊 Power BI</span> — Análisis Avanzado
+                    </p>
+                    <div style={styles.powerBiContainer}>
+                        <div style={styles.powerBiHeader}>
+                            <div style={styles.powerBiTitle}>
+                                <span style={{ fontSize: "22px" }}>📈</span>
+                                Reportes de Power BI
+                            </div>
+                            <span style={styles.powerBiBadge}>
+                                <span style={styles.dot(theme.primary)} />
+                                En vivo
                             </span>
-                        ) : (
-                            "No hay alertas pendientes"
-                        )}
+                        </div>
+                        <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", minHeight: "500px" }}>
+                            <iframe
+                                title="Power BI Dashboard"
+                                src={POWER_BI_URL}
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: "100%",
+                                    border: "none",
+                                    borderRadius: "0 0 16px 16px",
+                                }}
+                                frameBorder="0"
+                                allowFullScreen
+                            />
+                        </div>
+                        <div style={styles.powerBiFooter}>
+                            <span style={styles.powerBiFooterText}>
+                                <i className="bi bi-info-circle me-1"></i>
+                                Dashboard interactivo de Power BI · Actualizado en tiempo real
+                            </span>
+                            <a 
+                                href={POWER_BI_URL} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                style={{ textDecoration: "none" }}
+                            >
+                                <button style={styles.powerBiButton}>
+                                    <i className="bi bi-box-arrow-up-right me-1"></i>
+                                    Abrir en pantalla completa
+                                </button>
+                            </a>
+                        </div>
                     </div>
                 </div>
+            )}
+
+            {paginaDashboard === 2 && (
+                <div>
+                    <p style={styles.sectionLabel}>Hoy</p>
+                    <div style={styles.grid}>
+                        <div style={{...styles.card, ...(hoveredCard === 'asistencias' ? styles.cardHover : {})}}
+                            onMouseEnter={() => setHoveredCard('asistencias')}
+                            onMouseLeave={() => setHoveredCard(null)}>
+                            <div style={styles.cardGlow(metricColors.asistencias)} />
+                            <span style={styles.cardIcon(metricColors.asistencias)}>🏃</span>
+                            <div style={styles.cardLabel}>
+                                <span style={styles.dot(metricColors.asistencias)} />
+                                Asistencias
+                            </div>
+                            <div style={styles.cardValue(metricColors.asistencias)}>{val(data.asistenciasHoy)}</div>
+                            <div style={styles.cardSub}>personas hoy</div>
+                        </div>
+
+                        <div style={{...styles.card, ...(hoveredCard === 'ventas' ? styles.cardHover : {})}}
+                            onMouseEnter={() => setHoveredCard('ventas')}
+                            onMouseLeave={() => setHoveredCard(null)}>
+                            <div style={styles.cardGlow(metricColors.ventas)} />
+                            <span style={styles.cardIcon(metricColors.ventas)}>🛒</span>
+                            <div style={styles.cardLabel}>
+                                <span style={styles.dot(metricColors.ventas)} />
+                                Ventas del día
+                            </div>
+                            <div style={styles.cardValue(metricColors.ventas)}>{val(data.ventasHoy)}</div>
+                            <div style={styles.cardSub}>
+                                {cargando ? "—" : `$${data.ventasHoyTotal.toLocaleString()} en ventas`}
+                            </div>
+                        </div>
+
+                        <div style={{...styles.card, ...(hoveredCard === 'productos' ? styles.cardHover : {})}}
+                            onMouseEnter={() => setHoveredCard('productos')}
+                            onMouseLeave={() => setHoveredCard(null)}>
+                            <div style={styles.cardGlow(metricColors.productos)} />
+                            <span style={styles.cardIcon(metricColors.productos)}>📦</span>
+                            <div style={styles.cardLabel}>
+                                <span style={styles.dot(metricColors.productos)} />
+                                Productos vendidos
+                            </div>
+                            <div style={styles.cardValue(metricColors.productos)}>{val(data.productosVendidosHoy)}</div>
+                            <div style={styles.cardSub}>unidades despachadas hoy</div>
+                        </div>
+
+                        <div style={{...styles.card, ...(hoveredCard === 'ingresos' ? styles.cardHover : {})}}
+                            onMouseEnter={() => setHoveredCard('ingresos')}
+                            onMouseLeave={() => setHoveredCard(null)}
+                            onClick={() => setMostrarIngresos(true)}>
+                            <div style={styles.cardGlow(metricColors.ingresos)} />
+                            <span style={styles.cardIcon(metricColors.ingresos)}>💰</span>
+                            <div style={styles.cardLabel}>
+                                <span style={styles.dot(metricColors.ingresos)} />
+                                Ingresos del mes
+                            </div>
+                            <div style={{...styles.cardValue(metricColors.ingresos), fontSize: data.ingresosMes > 999999 ? "28px" : "36px"}}>
+                                C${val(data.ingresosMes.toLocaleString())}
+                            </div>
+                            <div style={styles.cardSub}>{mesLegible} · Click para ver detalle</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {paginaDashboard === 3 && (
+                <div>
+                    <p style={styles.sectionLabel}>General</p>
+                    <div style={styles.grid2}>
+                        <div style={{...styles.card, ...(hoveredCard === 'clientes' ? styles.cardHover : {})}}
+                            onMouseEnter={() => setHoveredCard('clientes')}
+                            onMouseLeave={() => setHoveredCard(null)}>
+                            <div style={styles.cardGlow(metricColors.clientes)} />
+                            <span style={styles.cardIcon(metricColors.clientes)}>👥</span>
+                            <div style={styles.cardLabel}>
+                                <span style={styles.dot(metricColors.clientes)} />
+                                Clientes totales
+                            </div>
+                            <div style={styles.cardValue(metricColors.clientes)}>{val(data.totalClientes)}</div>
+                            <div style={styles.cardSub}>
+                                <span style={styles.pill(theme.accent4)}>
+                                    <span style={styles.dot(theme.accent4)} />
+                                    {val(data.clientesActivos)} activos
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style={{...styles.card, ...(hoveredCard === 'catalogo' ? styles.cardHover : {})}}
+                            onMouseEnter={() => setHoveredCard('catalogo')}
+                            onMouseLeave={() => setHoveredCard(null)}
+                            onClick={() => setMostrarCatalogo(true)}
+                            title="Click para ver catálogo completo">
+                            <div style={styles.cardGlow(metricColors.catalogo)} />
+                            <span style={styles.cardIcon(metricColors.catalogo)}>🏷️</span>
+                            <div style={styles.cardLabel}>
+                                <span style={styles.dot(metricColors.catalogo)} />
+                                Catálogo de productos
+                            </div>
+                            <div style={styles.cardValue(metricColors.catalogo)}>{val(data.totalProductos)}</div>
+                            <div style={styles.cardSub}>productos en sistema · Click para ver</div>
+                        </div>
+
+                        <div style={{...styles.heroCard, ...(hoveredCard === 'hero' ? { transform: "translateY(-3px) scale(1.01)" } : {})}}
+                            onMouseEnter={() => setHoveredCard('hero')}
+                            onMouseLeave={() => setHoveredCard(null)}
+                            onClick={() => setMostrarKPI(true)}>
+                            <div style={styles.heroCardGlow} />
+                            <div style={{ position: "relative", zIndex: 1 }}>
+                                <div style={styles.heroLabel}>💎 Ingresos del Mes</div>
+                                <h2 style={styles.heroValue}>C${data.ingresosMes.toLocaleString()}</h2>
+                                <p style={styles.heroSub}>Crecimiento de este mes · Click para ver KPIs</p>
+                            </div>
+                            <div style={{position: "absolute", bottom: "20px", right: "20px", fontSize: "60px", opacity: 0.06}}>📊</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {paginaDashboard === 4 && (
+                <div>
+                    <p style={styles.sectionLabel}>
+                        <span style={{ color: theme.accent6 }}>⚠️ Alertas</span>
+                    </p>
+                    <div style={styles.grid}>
+                        <div 
+                            style={{
+                                ...styles.alertCard, 
+                                ...(hoveredCard === 'alertas' ? styles.alertCardHover : {})
+                            }}
+                            onMouseEnter={() => setHoveredCard('alertas')}
+                            onMouseLeave={() => setHoveredCard(null)}
+                            onClick={() => setMostrarAlertas(true)}
+                            title="Click para ver todas las alertas"
+                        >
+                            <div style={styles.alertCardGlow} />
+                            <div style={styles.alertBadge}>
+                                {totalAlertas} alerta{totalAlertas !== 1 ? 's' : ''}
+                            </div>
+                            <span style={{...styles.cardIcon(theme.accent6), fontSize: "28px"}}>🚨</span>
+
+                            <div style={styles.cardLabel}>
+                                <span style={{...styles.dot(theme.accent6), animation: "pulse 2s infinite"}} />
+                                Alertas del Sistema
+                            </div>
+
+                            <div style={styles.cardValue(theme.accent6)}>
+                                {val(totalAlertas)}
+                            </div>
+
+                            <div style={styles.cardSub}>
+                                {totalAlertas > 0 ? (
+                                    <span>
+                                        <span style={{color: theme.accent6, fontWeight: 700}}>
+                                            {data.clientesPorVencer.length}
+                                        </span> membresías por vencer · 
+                                        <span style={{color: theme.accent7, fontWeight: 700}}>
+                                            {data.productosStockBajo.length}
+                                        </span> productos con stock bajo
+                                    </span>
+                                ) : (
+                                    "No hay alertas pendientes"
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div style={styles.paginationContainer}>
+                <button
+                    onClick={() => cambiarPaginaDashboard(paginaDashboard - 1)}
+                    disabled={paginaDashboard === 1}
+                    style={{
+                        ...styles.paginationButton,
+                        ...(paginaDashboard === 1 ? styles.paginationButtonDisabled : {})
+                    }}
+                >
+                    ← Anterior
+                </button>
+
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    {secciones.map((seccion) => (
+                        <button
+                            key={seccion.id}
+                            onClick={() => cambiarPaginaDashboard(seccion.id)}
+                            style={{
+                                ...styles.paginationNumber,
+                                ...(paginaDashboard === seccion.id ? styles.paginationNumberActive : {})
+                            }}
+                            title={seccion.titulo}
+                        >
+                            <span>{seccion.icono}</span>
+                            <span>{seccion.id}</span>
+                        </button>
+                    ))}
+                </div>
+
+                <button
+                    onClick={() => cambiarPaginaDashboard(paginaDashboard + 1)}
+                    disabled={paginaDashboard === totalPaginasDashboard}
+                    style={{
+                        ...styles.paginationButton,
+                        ...(paginaDashboard === totalPaginasDashboard ? styles.paginationButtonDisabled : {})
+                    }}
+                >
+                    Siguiente →
+                </button>
+            </div>
+
+            <div style={styles.paginationInfo}>
+                Página {paginaDashboard} de {totalPaginasDashboard} · 
+                <span style={{ color: theme.primary, fontWeight: 700 }}>
+                    {secciones[paginaDashboard - 1]?.icono} {secciones[paginaDashboard - 1]?.titulo}
+                </span>
             </div>
 
             <Modal show={mostrarKPI} onHide={() => setMostrarKPI(false)} centered size="lg" contentClassName="border-0">
@@ -1710,7 +1963,8 @@ const Dashboard = () => {
 
                         {data.clientesPorVencer.length === 0 ? (
                             <div style={styles.alertEmpty}>
-                                <span style={{ fontSize: "32px", display: "block", marginBottom: "8px" }}>✅</span>                             No hay membresías por vencer en los próximos 3 días
+                                <span style={{ fontSize: "32px", display: "block", marginBottom: "8px" }}>✅</span>
+                                No hay membresías por vencer en los próximos 3 días
                             </div>
                         ) : (
                             <div style={{ ...styles.ingresoCard, padding: "16px 20px" }}>
@@ -1848,9 +2102,6 @@ const Dashboard = () => {
                 </Modal.Footer>
             </Modal>
 
-            {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* ═══ FOOTER ESTILO ASISTENCIAS ═════════════════════════════════════ */}
-            {/* ═══════════════════════════════════════════════════════════════════ */}
             <footer style={{
                 marginTop: "40px",
                 padding: "32px",
@@ -1863,7 +2114,6 @@ const Dashboard = () => {
                     gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
                     gap: "24px",
                 }}>
-                    {/* Columna 1: Brand */}
                     <div>
                         <div style={{
                             background: "linear-gradient(135deg, #3B82F6, #2563EB)",
@@ -1893,7 +2143,6 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Columna 2: Estadísticas */}
                     <div style={{
                         background: "#F9FAFB",
                         borderRadius: "16px",
@@ -2002,7 +2251,6 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Columna 3: Estado del Sistema */}
                     <div style={{
                         background: "#F9FAFB",
                         borderRadius: "16px",
@@ -2054,7 +2302,6 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Barra inferior */}
                 <div style={{
                     marginTop: "24px",
                     padding: "16px",
