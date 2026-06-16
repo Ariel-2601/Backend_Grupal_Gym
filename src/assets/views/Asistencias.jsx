@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Button, Alert, Card, Badge } from "react-bootstrap";
+import { Container, Row, Col, Button, Alert, Card, Badge, Pagination } from "react-bootstrap";
 import { supabase } from "../database/supabaseconfig";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import NotificacionOperacion from "../components/NotificacionOperacion";
@@ -15,6 +15,12 @@ const Asistencias = () => {
     const [cargando, setCargando] = useState(false);
     const [registrando, setRegistrando] = useState(null);
     const [registrandoSalida, setRegistrandoSalida] = useState(null);
+
+    // =========================
+    // Paginación
+    // =========================
+    const [paginaActual, setPaginaActual] = useState(1);
+    const itemsPorPagina = 8; // Clientes por página
 
     // =========================
     // Toast
@@ -48,6 +54,7 @@ const Asistencias = () => {
             if (error) throw error;
             setClientes(data || []);
             setClientesFiltrados(data || []);
+            setPaginaActual(1); // Resetear a página 1 al cargar
         } catch (error) {
             console.error("Error al cargar clientes:", error);
             setToast({
@@ -249,6 +256,73 @@ const Asistencias = () => {
         );
 
         setClientesFiltrados(resultados);
+        setPaginaActual(1); // Resetear a página 1 al buscar
+    };
+
+    // =========================
+    // Paginación - Calcular datos
+    // =========================
+    const totalPaginas = Math.ceil(clientesFiltrados.length / itemsPorPagina);
+    const indiceInicio = (paginaActual - 1) * itemsPorPagina;
+    const indiceFin = indiceInicio + itemsPorPagina;
+    const clientesPaginados = clientesFiltrados.slice(indiceInicio, indiceFin);
+
+    // =========================
+    // Generar items de paginación
+    // =========================
+    const generarItemsPaginacion = () => {
+        const items = [];
+        const maxVisible = 5; // Máximo de botones visibles
+
+        let startPage = Math.max(1, paginaActual - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPaginas, startPage + maxVisible - 1);
+
+        if (endPage - startPage + 1 < maxVisible) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        // Botón Primera página
+        if (startPage > 1) {
+            items.push(
+                <Pagination.First 
+                    key="first" 
+                    onClick={() => setPaginaActual(1)}
+                    disabled={paginaActual === 1}
+                />
+            );
+            items.push(
+                <Pagination.Ellipsis key="ellipsis-start" disabled />
+            );
+        }
+
+        // Botones de números
+        for (let numero = startPage; numero <= endPage; numero++) {
+            items.push(
+                <Pagination.Item
+                    key={numero}
+                    active={numero === paginaActual}
+                    onClick={() => setPaginaActual(numero)}
+                >
+                    {numero}
+                </Pagination.Item>
+            );
+        }
+
+        // Botón Última página
+        if (endPage < totalPaginas) {
+            items.push(
+                <Pagination.Ellipsis key="ellipsis-end" disabled />
+            );
+            items.push(
+                <Pagination.Last 
+                    key="last" 
+                    onClick={() => setPaginaActual(totalPaginas)}
+                    disabled={paginaActual === totalPaginas}
+                />
+            );
+        }
+
+        return items;
     };
 
     // =========================
@@ -311,163 +385,187 @@ const Asistencias = () => {
                     <a href="/clientes" className="ms-2">Ir a Clientes para agregar uno nuevo</a>
                 </Alert>
             ) : (
-                <Row className="g-3">
-                    {clientesFiltrados.map((cliente) => {
-                        const asistio = yaAsistioHoy(cliente.id_cliente);
-                        const asistenciaActiva = getAsistenciaActiva(cliente.id_cliente);
-                        const asistenciaCompletada = asistenciasHoy.find(
-                            a => a.id_cliente === cliente.id_cliente && a.hora_salida
-                        );
-                        const estaActivo = cliente.estado === "Activo";
+                <>
+                    <Row className="g-3">
+                        {clientesPaginados.map((cliente) => {
+                            const asistio = yaAsistioHoy(cliente.id_cliente);
+                            const asistenciaActiva = getAsistenciaActiva(cliente.id_cliente);
+                            const asistenciaCompletada = asistenciasHoy.find(
+                                a => a.id_cliente === cliente.id_cliente && a.hora_salida
+                            );
+                            const estaActivo = cliente.estado === "Activo";
 
-                        // Determinar estado visual
-                        let estadoColor, estadoIcon, estadoBg, estadoTexto;
-                        if (asistenciaCompletada) {
-                            estadoColor = "#6B7280";
-                            estadoIcon = "✓";
-                            estadoTexto = `Finalizado · ${asistenciaCompletada.hora_entrada} - ${asistenciaCompletada.hora_salida}`;
-                            estadoBg = "linear-gradient(135deg, #E5E7EB, #D1D5DB)";
-                        } else if (asistenciaActiva) {
-                            estadoColor = "#10B981";
-                            estadoIcon = "✓";
-                            estadoTexto = `Activo · Entrada: ${asistenciaActiva.hora_entrada}`;
-                            estadoBg = "linear-gradient(135deg, #10B981, #059669)";
-                        } else if (!estaActivo) {
-                            estadoColor = "#9CA3AF";
-                            estadoIcon = "✕";
-                            estadoTexto = "Cliente inactivo";
-                            estadoBg = "linear-gradient(135deg, #E5E7EB, #D1D5DB)";
-                        } else {
-                            estadoColor = "#3B82F6";
-                            estadoIcon = cliente.nombres.charAt(0).toUpperCase();
-                            estadoTexto = "Tocar para registrar";
-                            estadoBg = "linear-gradient(135deg, #3B82F6, #2563EB)";
-                        }
+                            // Determinar estado visual
+                            let estadoColor, estadoIcon, estadoBg, estadoTexto;
+                            if (asistenciaCompletada) {
+                                estadoColor = "#6B7280";
+                                estadoIcon = "✓";
+                                estadoTexto = `Finalizado · ${asistenciaCompletada.hora_entrada} - ${asistenciaCompletada.hora_salida}`;
+                                estadoBg = "linear-gradient(135deg, #E5E7EB, #D1D5DB)";
+                            } else if (asistenciaActiva) {
+                                estadoColor = "#10B981";
+                                estadoIcon = "✓";
+                                estadoTexto = `Activo · Entrada: ${asistenciaActiva.hora_entrada}`;
+                                estadoBg = "linear-gradient(135deg, #10B981, #059669)";
+                            } else if (!estaActivo) {
+                                estadoColor = "#9CA3AF";
+                                estadoIcon = "✕";
+                                estadoTexto = "Cliente inactivo";
+                                estadoBg = "linear-gradient(135deg, #E5E7EB, #D1D5DB)";
+                            } else {
+                                estadoColor = "#3B82F6";
+                                estadoIcon = cliente.nombres.charAt(0).toUpperCase();
+                                estadoTexto = "Tocar para registrar";
+                                estadoBg = "linear-gradient(135deg, #3B82F6, #2563EB)";
+                            }
 
-                        return (
-                            <Col key={cliente.id_cliente} xs={12} sm={6} md={4} lg={3}>
-                                <Card 
-                                    className="h-100 border-0 shadow-sm"
-                                    style={{
-                                        cursor: (!asistio && estaActivo) ? 'pointer' : 'default',
-                                        transition: 'all 0.2s ease',
-                                        transform: registrando === cliente.id_cliente ? 'scale(0.95)' : 'scale(1)',
-                                        opacity: (asistenciaCompletada || !estaActivo) ? 0.7 : 1,
-                                        borderWidth: !estaActivo ? "2px" : "0px",
-                                        borderStyle: "dashed",
-                                        borderColor: !estaActivo ? "#EF4444" : "transparent",
-                                    }}
-                                    onClick={() => {
-                                        if (!asistio && estaActivo) {
-                                            registrarAsistencia(cliente);
-                                        }
-                                    }}
-                                >
-                                    <Card.Body className="text-center p-4">
-                                        {/* Avatar / Icono */}
-                                        <div 
-                                            className="mx-auto mb-3 d-flex align-items-center justify-content-center"
-                                            style={{
-                                                width: 70,
-                                                height: 70,
-                                                borderRadius: "50%",
-                                                background: estadoBg,
-                                                color: "white",
-                                                fontSize: asistenciaActiva || asistenciaCompletada ? "28px" : "24px",
-                                                fontWeight: 700,
-                                                boxShadow: `0 4px 15px ${estadoColor}40`,
-                                            }}
-                                        >
-                                            {asistenciaActiva || asistenciaCompletada ? (
-                                                <i className="bi bi-check-lg"></i>
-                                            ) : (
-                                                estadoIcon
-                                            )}
-                                        </div>
+                            return (
+                                <Col key={cliente.id_cliente} xs={12} sm={6} md={4} lg={3}>
+                                    <Card 
+                                        className="h-100 border-0 shadow-sm"
+                                        style={{
+                                            cursor: (!asistio && estaActivo) ? 'pointer' : 'default',
+                                            transition: 'all 0.2s ease',
+                                            transform: registrando === cliente.id_cliente ? 'scale(0.95)' : 'scale(1)',
+                                            opacity: (asistenciaCompletada || !estaActivo) ? 0.7 : 1,
+                                            borderWidth: !estaActivo ? "2px" : "0px",
+                                            borderStyle: "dashed",
+                                            borderColor: !estaActivo ? "#EF4444" : "transparent",
+                                        }}
+                                        onClick={() => {
+                                            if (!asistio && estaActivo) {
+                                                registrarAsistencia(cliente);
+                                            }
+                                        }}
+                                    >
+                                        <Card.Body className="text-center p-4">
+                                            {/* Avatar / Icono */}
+                                            <div 
+                                                className="mx-auto mb-3 d-flex align-items-center justify-content-center"
+                                                style={{
+                                                    width: 70,
+                                                    height: 70,
+                                                    borderRadius: "50%",
+                                                    background: estadoBg,
+                                                    color: "white",
+                                                    fontSize: asistenciaActiva || asistenciaCompletada ? "28px" : "24px",
+                                                    fontWeight: 700,
+                                                    boxShadow: `0 4px 15px ${estadoColor}40`,
+                                                }}
+                                            >
+                                                {asistenciaActiva || asistenciaCompletada ? (
+                                                    <i className="bi bi-check-lg"></i>
+                                                ) : (
+                                                    estadoIcon
+                                                )}
+                                            </div>
 
-                                        {/* Nombre */}
-                                        <Card.Title className="mb-1" style={{ fontSize: "16px", fontWeight: 700 }}>
-                                            {cliente.nombres} {cliente.apellidos}
-                                        </Card.Title>
+                                            {/* Nombre */}
+                                            <Card.Title className="mb-1" style={{ fontSize: "16px", fontWeight: 700 }}>
+                                                {cliente.nombres} {cliente.apellidos}
+                                            </Card.Title>
 
-                                        {/* Estado del cliente */}
-                                        {!estaActivo && (
-                                            <Badge bg="danger" className="mb-2">
-                                                <i className="bi bi-exclamation-circle me-1"></i>
-                                                Inactivo
-                                            </Badge>
-                                        )}
-
-                                        {/* Estado de asistencia */}
-                                        <div className="mt-2">
-                                            {asistenciaCompletada ? (
-                                                <Badge bg="secondary" className="px-3 py-2">
-                                                    <i className="bi bi-check-circle-fill me-1"></i>
-                                                    Finalizado
+                                            {/* Estado del cliente */}
+                                            {!estaActivo && (
+                                                <Badge bg="danger" className="mb-2">
+                                                    <i className="bi bi-exclamation-circle me-1"></i>
+                                                    Inactivo
                                                 </Badge>
-                                            ) : asistenciaActiva ? (
-                                                <div>
-                                                    <Badge bg="success" className="px-3 py-2 mb-2">
-                                                        <i className="bi bi-person-check me-1"></i>
-                                                        Activo · {asistenciaActiva.hora_entrada}
+                                            )}
+
+                                            {/* Estado de asistencia */}
+                                            <div className="mt-2">
+                                                {asistenciaCompletada ? (
+                                                    <Badge bg="secondary" className="px-3 py-2">
+                                                        <i className="bi bi-check-circle-fill me-1"></i>
+                                                        Finalizado
                                                     </Badge>
-                                                    <Button
-                                                        variant="outline-danger"
-                                                        size="sm"
-                                                        className="mt-2 w-100"
-                                                        disabled={registrandoSalida === asistenciaActiva.id_asistencia}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            registrarSalida(asistenciaActiva);
+                                                ) : asistenciaActiva ? (
+                                                    <div>
+                                                        <Badge bg="success" className="px-3 py-2 mb-2">
+                                                            <i className="bi bi-person-check me-1"></i>
+                                                            Activo · {asistenciaActiva.hora_entrada}
+                                                        </Badge>
+                                                        <Button
+                                                            variant="outline-danger"
+                                                            size="sm"
+                                                            className="mt-2 w-100"
+                                                            disabled={registrandoSalida === asistenciaActiva.id_asistencia}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                registrarSalida(asistenciaActiva);
+                                                            }}
+                                                        >
+                                                            {registrandoSalida === asistenciaActiva.id_asistencia ? (
+                                                                <>
+                                                                    <span className="spinner-border spinner-border-sm me-1"></span>
+                                                                    Registrando...
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <i className="bi bi-box-arrow-right me-1"></i>
+                                                                    Registrar Salida
+                                                                </>
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                ) : estaActivo ? (
+                                                    <Badge 
+                                                        bg="light" 
+                                                        text="dark" 
+                                                        className="px-3 py-2"
+                                                        style={{ 
+                                                            borderWidth: "1px", 
+                                                            borderStyle: "solid", 
+                                                            borderColor: "#E5E7EB" 
                                                         }}
                                                     >
-                                                        {registrandoSalida === asistenciaActiva.id_asistencia ? (
-                                                            <>
-                                                                <span className="spinner-border spinner-border-sm me-1"></span>
-                                                                Registrando...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <i className="bi bi-box-arrow-right me-1"></i>
-                                                                Registrar Salida
-                                                            </>
-                                                        )}
-                                                    </Button>
-                                                </div>
-                                            ) : estaActivo ? (
-                                                <Badge 
-                                                    bg="light" 
-                                                    text="dark" 
-                                                    className="px-3 py-2"
-                                                    style={{ 
-                                                        borderWidth: "1px", 
-                                                        borderStyle: "solid", 
-                                                        borderColor: "#E5E7EB" 
-                                                    }}
-                                                >
-                                                    <i className="bi bi-hand-index-thumb me-1"></i>
-                                                    Tocar para registrar
-                                                </Badge>
-                                            ) : (
-                                                <Badge bg="light" text="dark" className="px-3 py-2">
-                                                    <i className="bi bi-ban me-1"></i>
-                                                    No disponible
-                                                </Badge>
-                                            )}
-                                        </div>
-
-                                        {registrando === cliente.id_cliente && (
-                                            <div className="mt-2">
-                                                <span className="spinner-border spinner-border-sm text-primary me-2"></span>
-                                                Registrando...
+                                                        <i className="bi bi-hand-index-thumb me-1"></i>
+                                                        Tocar para registrar
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge bg="light" text="dark" className="px-3 py-2">
+                                                        <i className="bi bi-ban me-1"></i>
+                                                        No disponible
+                                                    </Badge>
+                                                )}
                                             </div>
-                                        )}
-                                    </Card.Body>
-                                </Card>
+
+                                            {registrando === cliente.id_cliente && (
+                                                <div className="mt-2">
+                                                    <span className="spinner-border spinner-border-sm text-primary me-2"></span>
+                                                    Registrando...
+                                                </div>
+                                            )}
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            );
+                        })}
+                    </Row>
+
+                    {/* Paginación */}
+                    {totalPaginas > 1 && (
+                        <Row className="mt-4">
+                            <Col className="d-flex justify-content-center align-items-center flex-column">
+                                <Pagination className="mb-2">
+                                    <Pagination.Prev
+                                        onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                                        disabled={paginaActual === 1}
+                                    />
+                                    {generarItemsPaginacion()}
+                                    <Pagination.Next
+                                        onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                                        disabled={paginaActual === totalPaginas}
+                                    />
+                                </Pagination>
+                                <small className="text-muted">
+                                    Mostrando {indiceInicio + 1} - {Math.min(indiceFin, clientesFiltrados.length)} de {clientesFiltrados.length} clientes
+                                </small>
                             </Col>
-                        );
-                    })}
-                </Row>
+                        </Row>
+                    )}
+                </>
             )}
 
             {/* Lista de asistencias de hoy */}

@@ -105,12 +105,6 @@ const styles = {
         gap: "20px",
         marginBottom: "28px",
     },
-    gridAlerts: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
-        gap: "20px",
-        marginBottom: "28px",
-    },
     card: {
         background: theme.bgCard,
         borderRadius: "16px",
@@ -416,9 +410,8 @@ const styles = {
     },
 };
 
-
 // ═══════════════════════════════════════════════════════════════════════════
-// ═══ COMPONENTE CATÁLOGO MODAL (integrado en Dashboard) ═══════════════════
+// ═══ COMPONENTE CATÁLOGO MODAL ═════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════════════
 
 const CatalogoModal = () => {
@@ -427,6 +420,8 @@ const CatalogoModal = () => {
     const [mostrarModalProducto, setMostrarModalProducto] = useState(false);
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
     const [busqueda, setBusqueda] = useState("");
+    const [paginaActual, setPaginaActual] = useState(1);
+    const productosPorPagina = 9;
 
     const obtenerProductos = async () => {
         setCargando(true);
@@ -448,16 +443,24 @@ const CatalogoModal = () => {
         obtenerProductos();
     }, []);
 
-    // Filtrar productos según búsqueda
     const productosFiltrados = productos.filter((producto) => {
         const textoBusqueda = busqueda.toLowerCase().trim();
         if (!textoBusqueda) return true;
-
         const nombre = (producto.nombre_producto || "").toLowerCase();
         const categoria = (producto.categoria_producto || "").toLowerCase();
-
         return nombre.includes(textoBusqueda) || categoria.includes(textoBusqueda);
     });
+
+    const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
+    const indiceInicio = (paginaActual - 1) * productosPorPagina;
+    const indiceFin = indiceInicio + productosPorPagina;
+    const productosPaginados = productosFiltrados.slice(indiceInicio, indiceFin);
+
+    const cambiarPagina = (nuevaPagina) => {
+        if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+            setPaginaActual(nuevaPagina);
+        }
+    };
 
     if (cargando) {
         return (
@@ -479,7 +482,6 @@ const CatalogoModal = () => {
 
     return (
         <div>
-            {/* Cuadro de búsqueda */}
             <div style={{ marginBottom: "20px", display: "flex", justifyContent: "center" }}>
                 <div style={{ position: "relative", width: "100%", maxWidth: "500px" }}>
                     <span style={{ 
@@ -497,7 +499,10 @@ const CatalogoModal = () => {
                         type="text"
                         placeholder="Buscar por nombre o categoría..."
                         value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
+                        onChange={(e) => {
+                            setBusqueda(e.target.value);
+                            setPaginaActual(1);
+                        }}
                         style={{
                             width: "100%",
                             padding: "12px 16px 12px 48px",
@@ -519,7 +524,10 @@ const CatalogoModal = () => {
                     />
                     {busqueda && (
                         <button
-                            onClick={() => setBusqueda("")}
+                            onClick={() => {
+                                setBusqueda("");
+                                setPaginaActual(1);
+                            }}
                             style={{
                                 position: "absolute",
                                 right: "12px",
@@ -539,7 +547,6 @@ const CatalogoModal = () => {
                 </div>
             </div>
 
-            {/* Contador de resultados */}
             {busqueda && (
                 <p style={{ textAlign: "center", color: "#64748b", marginBottom: "16px", fontSize: "14px" }}>
                     {productosFiltrados.length} {productosFiltrados.length === 1 ? "producto encontrado" : "productos encontrados"} 
@@ -555,7 +562,7 @@ const CatalogoModal = () => {
                 overflowY: "auto",
                 padding: "8px"
             }}>
-                {productosFiltrados.map((producto) => (
+                {productosPaginados.map((producto) => (
                     <div
                         key={producto.id_producto}
                         style={{
@@ -644,7 +651,7 @@ const CatalogoModal = () => {
                     </div>
                 ))}
 
-                {productosFiltrados.length === 0 && !cargando && (
+                {productosPaginados.length === 0 && !cargando && (
                     <div style={{ 
                         gridColumn: "1 / -1", 
                         textAlign: "center", 
@@ -664,7 +671,82 @@ const CatalogoModal = () => {
                 )}
             </div>
 
-            {/* Modal de detalle de producto */}
+            {totalPaginas > 1 && (
+                <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginTop: "24px",
+                    padding: "16px 0",
+                }}>
+                    <button
+                        onClick={() => cambiarPagina(paginaActual - 1)}
+                        disabled={paginaActual === 1}
+                        style={{
+                            padding: "8px 16px",
+                            borderRadius: "10px",
+                            border: `1px solid ${theme.border}`,
+                            background: paginaActual === 1 ? theme.bgElevated : theme.bgCard,
+                            color: paginaActual === 1 ? theme.textSubtle : theme.text,
+                            cursor: paginaActual === 1 ? "not-allowed" : "pointer",
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            transition: "all 0.2s ease",
+                        }}
+                    >
+                        ← Anterior
+                    </button>
+
+                    <div style={{ display: "flex", gap: "6px" }}>
+                        {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((num) => (
+                            <button
+                                key={num}
+                                onClick={() => cambiarPagina(num)}
+                                style={{
+                                    width: "36px",
+                                    height: "36px",
+                                    borderRadius: "10px",
+                                    border: `1px solid ${num === paginaActual ? theme.primary : theme.border}`,
+                                    background: num === paginaActual ? theme.primary : theme.bgCard,
+                                    color: num === paginaActual ? "#fff" : theme.textMuted,
+                                    cursor: "pointer",
+                                    fontSize: "14px",
+                                    fontWeight: 700,
+                                    transition: "all 0.2s ease",
+                                }}
+                            >
+                                {num}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={() => cambiarPagina(paginaActual + 1)}
+                        disabled={paginaActual === totalPaginas}
+                        style={{
+                            padding: "8px 16px",
+                            borderRadius: "10px",
+                            border: `1px solid ${theme.border}`,
+                            background: paginaActual === totalPaginas ? theme.bgElevated : theme.bgCard,
+                            color: paginaActual === totalPaginas ? theme.textSubtle : theme.text,
+                            cursor: paginaActual === totalPaginas ? "not-allowed" : "pointer",
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            transition: "all 0.2s ease",
+                        }}
+                    >
+                        Siguiente →
+                    </button>
+                </div>
+            )}
+
+            <div style={{ textAlign: "center", marginTop: "8px" }}>
+                <span style={{ fontSize: "12px", color: theme.textSubtle }}>
+                    Página {paginaActual} de {totalPaginas} · Mostrando {productosPaginados.length} de {productosFiltrados.length} productos
+                </span>
+            </div>
+
             <Modal show={mostrarModalProducto} onHide={() => setMostrarModalProducto(false)} centered size="lg">
                 {productoSeleccionado && (
                     <>
@@ -798,29 +880,24 @@ const Dashboard = () => {
             setCargando(true);
             console.log("📅 Fechas de consulta:", { hoy, mesInicio, mesFin });
 
-            // Total clientes
             const { count: totalClientes } = await supabase
                 .from("clientes")
                 .select("*", { count: "exact", head: true });
 
-            // Clientes activos
             const { count: clientesActivos } = await supabase
                 .from("clientes")
                 .select("*", { count: "exact", head: true })
                 .eq("estado", "Activo");
 
-            // Total productos
             const { count: totalProductos } = await supabase
                 .from("productos")
                 .select("*", { count: "exact", head: true });
 
-            // Asistencias HOY
             const { count: asistenciasHoy } = await supabase
                 .from("asistencias")
                 .select("*", { count: "exact", head: true })
                 .eq("fecha", hoy);
 
-            // Ventas HOY
             console.log("🔍 Consultando ventas para fecha:", hoy);
             const { data: ventasHoyData, error: errorVentasHoy } = await supabase
                 .from("ventas")
@@ -836,8 +913,6 @@ const Dashboard = () => {
             const ventasHoy = ventasHoyData?.length || 0;
             const ventasHoyTotal = ventasHoyData?.reduce((acc, v) => acc + Number(v.total || 0), 0) || 0;
 
-            // ─── INGRESOS DEL MES ────────────────────────────────────────
-            // 1. Ingresos por VENTAS (productos) - en DÓLARES ($)
             const { data: ventasMes, error: errorVentasMes } = await supabase
                 .from("ventas")
                 .select("total, fecha_venta")
@@ -851,11 +926,8 @@ const Dashboard = () => {
             }
 
             const ingresosProductosMes = ventasMes?.reduce((acc, v) => acc + Number(v.total || 0), 0) || 0;
-
-            // Convertir productos a Córdobas usando la tasa de cambio
             const ingresosProductosMesC$ = ingresosProductosMes * tasaCambio;
 
-            // 2. Ingresos por MEMBRESÍAS - en CÓRDOBAS (C$)
             const { data: membresiasMes, error: errorMembresiasMes } = await supabase
                 .from("membresias_clientes")
                 .select(`
@@ -876,7 +948,6 @@ const Dashboard = () => {
                 return acc + Number(m.membresias?.precio || 0);
             }, 0) || 0;
 
-            // Total en Córdobas = Productos convertidos + Membresías en Córdobas
             const ingresosMes = ingresosProductosMesC$ + ingresosMembresiasMes;
 
             console.log("💰 Ingresos:", {
@@ -887,7 +958,6 @@ const Dashboard = () => {
                 tasa: tasaCambio
             });
 
-            // ── Horario pico y día más concurrido ──────────────────────────
             const { data: asistenciasAll } = await supabase
                 .from("asistencias")
                 .select("fecha, hora_entrada");
@@ -923,7 +993,6 @@ const Dashboard = () => {
                     : 0;
             }
 
-            // ── Productos vendidos HOY ─────────────────────────────────────
             console.log("🔍 Consultando ventas de hoy para detalles...");
             const { data: ventasHoyIds, error: errorIds } = await supabase
                 .from("ventas")
@@ -957,7 +1026,6 @@ const Dashboard = () => {
                 }
             }
 
-            // Ranking global de productos más vendidos
             const { data: detalleVentas, error: errorDetalleAll } = await supabase
                 .from("detalle_ventas")
                 .select("cantidad, productos(nombre_producto)");
@@ -980,12 +1048,6 @@ const Dashboard = () => {
                 }
             }
 
-            // ═══════════════════════════════════════════════════════════════════════
-            // ═══ ALERTAS - CONECTADAS A TUS ENTIDADES REALES ═════════════════════
-            // ═══════════════════════════════════════════════════════════════════════
-
-            // 1. CLIENTES CON MEMBRESÍA POR VENCER (menos de 3 días)
-            // Conectado a: membresias_clientes ↔ clientes ↔ membresias
             const fechaLimite = new Date();
             fechaLimite.setDate(fechaLimite.getDate() + 3);
             const fechaLimiteStr = fechaLimite.toISOString().split("T")[0];
@@ -1024,7 +1086,6 @@ const Dashboard = () => {
                 console.log("📋 Datos:", membresiasPorVencerData);
             }
 
-            // Procesar datos con cálculo de días restantes (misma lógica que MembresiasClientes.jsx)
             const clientesPorVencer = (membresiasPorVencerData || []).map(mc => {
                 const hoyDate = new Date();
                 const hoyStr = hoyDate.toISOString().split("T")[0];
@@ -1049,11 +1110,8 @@ const Dashboard = () => {
                 };
             }).filter(c => c.diasRestantes >= 0 && c.diasRestantes <= 3);
 
-            // 2. PRODUCTOS CON STOCK BAJO (menor a 3)
-            // Conectado a: productos
             console.log("📦 Buscando productos con stock bajo (< 3)...");
 
-            // Productos con stock entre 1 y 2 (bajo)
             const { data: productosStockBajoData, error: errorStockBajo } = await supabase
                 .from("productos")
                 .select(`
@@ -1071,7 +1129,6 @@ const Dashboard = () => {
                 console.error("❌ Error productos stock bajo:", errorStockBajo);
             }
 
-            // Productos AGOTADOS (stock = 0)
             const { data: productosAgotadosData, error: errorAgotados } = await supabase
                 .from("productos")
                 .select(`
@@ -1109,8 +1166,6 @@ const Dashboard = () => {
             console.log("📦 Productos stock bajo:", productosStockBajo.length);
             console.log("👤 Clientes por vencer:", clientesPorVencer.length);
 
-            // ═══════════════════════════════════════════════════════════════════════
-
             const resultado = {
                 totalClientes: totalClientes || 0,
                 totalProductos: totalProductos || 0,
@@ -1144,7 +1199,6 @@ const Dashboard = () => {
         }
     };
 
-    // Recargar cuando cambia la tasa de cambio
     useEffect(() => {
         cargarDashboard();
     }, [tasaCambio]);
@@ -1313,14 +1367,10 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* ═══ SECCIÓN ALERTAS - RESUMEN EN UNA TARJETA ═════════════════════ */}
-            {/* ═══════════════════════════════════════════════════════════════════ */}
             <p style={styles.sectionLabel}>
                 <span style={{ color: theme.accent6 }}>⚠️ Alertas</span>
             </p>
             <div style={styles.grid}>
-                {/* Tarjeta única: Alertas */}
                 <div 
                     style={{
                         ...styles.alertCard, 
@@ -1363,7 +1413,6 @@ const Dashboard = () => {
                 </div>
             </div>
 
-{/* ── Modal KPIs ── */}
             <Modal show={mostrarKPI} onHide={() => setMostrarKPI(false)} centered size="lg" contentClassName="border-0">
                 <Modal.Header closeButton style={styles.modalHeader}>
                     <Modal.Title style={{ fontWeight: 800, color: theme.text, fontSize: "20px" }}>
@@ -1460,7 +1509,6 @@ const Dashboard = () => {
                 </Modal.Footer>
             </Modal>
 
-            {/* ── Modal INGRESOS DETALLADOS ── */}
             <Modal show={mostrarIngresos} onHide={() => setMostrarIngresos(false)} centered size="lg" contentClassName="border-0">
                 <Modal.Header closeButton style={styles.modalHeader}>
                     <Modal.Title style={{ fontWeight: 800, color: theme.text, fontSize: "20px" }}>
@@ -1470,7 +1518,6 @@ const Dashboard = () => {
                 </Modal.Header>
 
                 <Modal.Body style={styles.modalBody}>
-                    {/* Tasa de cambio configurable */}
                     <div style={{
                         ...styles.ingresoCard,
                         background: `linear-gradient(135deg, ${theme.accent3}15, ${theme.accent3}08)`,
@@ -1506,7 +1553,6 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Total */}
                     <div style={{
                         ...styles.ingresoCard,
                         background: `linear-gradient(135deg, ${theme.accent4}15, ${theme.accent4}08)`,
@@ -1521,7 +1567,6 @@ const Dashboard = () => {
                     </div>
 
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
-                        {/* Ingresos por Productos - en DÓLARES y CÓRDOBAS */}
                         <div style={{ flex: "1 1 300px", minWidth: "280px" }}>
                             <div style={{
                                 ...styles.ingresoCard,
@@ -1548,7 +1593,6 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        {/* Ingresos por Membresías - en CÓRDOBAS */}
                         <div style={{ flex: "1 1 300px", minWidth: "280px" }}>
                             <div style={{
                                 ...styles.ingresoCard,
@@ -1575,7 +1619,6 @@ const Dashboard = () => {
 
                     <hr style={styles.divider} />
 
-                    {/* Gráfico visual simple */}
                     <div style={{ marginTop: "20px" }}>
                         <div style={{ fontWeight: 700, fontSize: "14px", marginBottom: "16px", color: theme.text }}>
                             Distribución de Ingresos (en C$)
@@ -1583,7 +1626,6 @@ const Dashboard = () => {
 
                         {data.ingresosMes > 0 && (
                             <div>
-                                {/* Barra de productos */}
                                 <div style={{ marginBottom: "12px" }}>
                                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                                         <span style={{ fontSize: "13px", fontWeight: 600, color: theme.text }}>
@@ -1604,7 +1646,6 @@ const Dashboard = () => {
                                     </div>
                                 </div>
 
-                                {/* Barra de membresías */}
                                 <div>
                                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                                         <span style={{ fontSize: "13px", fontWeight: 600, color: theme.text }}>
@@ -1639,9 +1680,6 @@ const Dashboard = () => {
                 </Modal.Footer>
             </Modal>
 
-            {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* ═══ MODAL ALERTAS DETALLADAS - CONECTADO A TUS ENTIDADES REALES ═══ */}
-            {/* ═══════════════════════════════════════════════════════════════════ */}
             <Modal show={mostrarAlertas} onHide={() => setMostrarAlertas(false)} centered size="lg" contentClassName="border-0">
                 <Modal.Header closeButton style={{
                     ...styles.modalHeader,
@@ -1658,7 +1696,6 @@ const Dashboard = () => {
                 </Modal.Header>
 
                 <Modal.Body style={styles.modalBody}>
-                    {/* ─── Sección: Membresías por Vencer ─── */}
                     <div style={{ marginBottom: "32px" }}>
                         <div style={styles.alertSectionTitle}>
                             <span style={{ fontSize: "18px" }}>👤</span>
@@ -1673,8 +1710,7 @@ const Dashboard = () => {
 
                         {data.clientesPorVencer.length === 0 ? (
                             <div style={styles.alertEmpty}>
-                                <span style={{ fontSize: "32px", display: "block", marginBottom: "8px" }}>✅</span>
-                                No hay membresías por vencer en los próximos 3 días
+                                <span style={{ fontSize: "32px", display: "block", marginBottom: "8px" }}>✅</span>                             No hay membresías por vencer en los próximos 3 días
                             </div>
                         ) : (
                             <div style={{ ...styles.ingresoCard, padding: "16px 20px" }}>
@@ -1717,7 +1753,6 @@ const Dashboard = () => {
 
                     <hr style={styles.divider} />
 
-                    {/* ─── Sección: Stock Bajo ─── */}
                     <div>
                         <div style={styles.alertSectionTitle}>
                             <span style={{ fontSize: "18px" }}>📦</span>
@@ -1791,9 +1826,6 @@ const Dashboard = () => {
                 </Modal.Footer>
             </Modal>
 
-            {/* ═══════════════════════════════════════════════════════════════════ */}
-            {/* ═══ MODAL CATÁLOGO DE PRODUCTOS ═══════════════════════════════════ */}
-            {/* ═══════════════════════════════════════════════════════════════════ */}
             <Modal show={mostrarCatalogo} onHide={() => setMostrarCatalogo(false)} centered size="xl" contentClassName="border-0">
                 <Modal.Header closeButton style={styles.modalHeader}>
                     <Modal.Title style={{ fontWeight: 800, color: theme.text, fontSize: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -1815,8 +1847,234 @@ const Dashboard = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            {/* ═══ FOOTER ESTILO ASISTENCIAS ═════════════════════════════════════ */}
+            {/* ═══════════════════════════════════════════════════════════════════ */}
+            <footer style={{
+                marginTop: "40px",
+                padding: "32px",
+                background: "linear-gradient(135deg, #1F2937, #111827)",
+                borderRadius: "16px",
+                boxShadow: theme.shadowSoft,
+            }}>
+                <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                    gap: "24px",
+                }}>
+                    {/* Columna 1: Brand */}
+                    <div>
+                        <div style={{
+                            background: "linear-gradient(135deg, #3B82F6, #2563EB)",
+                            borderRadius: "16px",
+                            padding: "24px",
+                            textAlign: "center",
+                        }}>
+                            <div style={{
+                                width: 60,
+                                height: 60,
+                                borderRadius: "50%",
+                                background: "rgba(255,255,255,0.2)",
+                                color: "white",
+                                fontSize: "24px",
+                                fontWeight: 700,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                margin: "0 auto 12px",
+                            }}>
+                                <i className="bi bi-building"></i>
+                            </div>
+                            <h5 style={{ color: "white", fontWeight: 700, marginBottom: 4 }}>LiveFitnessGym</h5>
+                            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", margin: 0 }}>
+                                Sistema de gestión integral
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Columna 2: Estadísticas */}
+                    <div style={{
+                        background: "#F9FAFB",
+                        borderRadius: "16px",
+                        padding: "24px",
+                    }}>
+                        <h6 style={{
+                            fontSize: "14px",
+                            fontWeight: 700,
+                            color: "#1F2937",
+                            marginBottom: "16px",
+                            letterSpacing: "0.05em",
+                            textTransform: "uppercase",
+                        }}>
+                            <i className="bi bi-bar-chart-line me-2 text-primary"></i>
+                            Resumen del Mes
+                        </h6>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <div style={{
+                                        width: 35,
+                                        height: 35,
+                                        borderRadius: "50%",
+                                        background: "linear-gradient(135deg, #10B981, #059669)",
+                                        color: "white",
+                                        fontSize: "14px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}>
+                                        <i className="bi bi-cash-stack"></i>
+                                    </div>
+                                    <span style={{ fontSize: "14px", color: "#4B5563" }}>Ingresos</span>
+                                </div>
+                                <span style={{ fontSize: "14px", fontWeight: 700, color: "#10B981" }}>
+                                    C${data.ingresosMes.toLocaleString()}
+                                </span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <div style={{
+                                        width: 35,
+                                        height: 35,
+                                        borderRadius: "50%",
+                                        background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                                        color: "white",
+                                        fontSize: "14px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}>
+                                        <i className="bi bi-people-fill"></i>
+                                    </div>
+                                    <span style={{ fontSize: "14px", color: "#4B5563" }}>Clientes activos</span>
+                                </div>
+                                <span style={{ fontSize: "14px", fontWeight: 700, color: "#F59E0B" }}>
+                                    {data.clientesActivos}
+                                </span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <div style={{
+                                        width: 35,
+                                        height: 35,
+                                        borderRadius: "50%",
+                                        background: "linear-gradient(135deg, #8B5CF6, #7C3AED)",
+                                        color: "white",
+                                        fontSize: "14px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}>
+                                        <i className="bi bi-cart"></i>
+                                    </div>
+                                    <span style={{ fontSize: "14px", color: "#4B5563" }}>Ventas</span>
+                                </div>
+                                <span style={{ fontSize: "14px", fontWeight: 700, color: "#8B5CF6" }}>
+                                    {data.ventasMes?.length || 0}
+                                </span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    <div style={{
+                                        width: 35,
+                                        height: 35,
+                                        borderRadius: "50%",
+                                        background: totalAlertas > 0 ? "linear-gradient(135deg, #EF4444, #DC2626)" : "linear-gradient(135deg, #10B981, #059669)",
+                                        color: "white",
+                                        fontSize: "14px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}>
+                                        <i className="bi bi-exclamation-triangle"></i>
+                                    </div>
+                                    <span style={{ fontSize: "14px", color: "#4B5563" }}>Alertas</span>
+                                </div>
+                                <span style={{ 
+                                    fontSize: "14px", 
+                                    fontWeight: 700, 
+                                    color: totalAlertas > 0 ? "#EF4444" : "#10B981" 
+                                }}>
+                                    {totalAlertas}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Columna 3: Estado del Sistema */}
+                    <div style={{
+                        background: "#F9FAFB",
+                        borderRadius: "16px",
+                        padding: "24px",
+                    }}>
+                        <h6 style={{
+                            fontSize: "14px",
+                            fontWeight: 700,
+                            color: "#1F2937",
+                            marginBottom: "16px",
+                            letterSpacing: "0.05em",
+                            textTransform: "uppercase",
+                        }}>
+                            <i className="bi bi-activity me-2 text-success"></i>
+                            Estado del Sistema
+                        </h6>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                            <Badge 
+                                bg="success" 
+                                className="px-3 py-2"
+                                style={{ fontSize: "12px", background: "linear-gradient(135deg, #10B981, #059669)" }}
+                            >
+                                <i className="bi bi-wifi me-1"></i>
+                                Online
+                            </Badge>
+                            <Badge 
+                                bg="primary" 
+                                className="px-3 py-2"
+                                style={{ fontSize: "12px", background: "linear-gradient(135deg, #3B82F6, #2563EB)" }}
+                            >
+                                <i className="bi bi-shield-check me-1"></i>
+                                Seguro
+                            </Badge>
+                            <Badge 
+                                bg="info" 
+                                className="px-3 py-2"
+                                style={{ fontSize: "12px", background: "linear-gradient(135deg, #06B6D4, #0891B2)" }}
+                            >
+                                <i className="bi bi-database me-1"></i>
+                                Supabase
+                            </Badge>
+                        </div>
+                        <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid #E5E7EB" }}>
+                            <small style={{ fontSize: "12px", color: "#64748B" }}>
+                                <i className="bi bi-c-circle me-1"></i>
+                                {new Date().getFullYear()} Todos los derechos reservados
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Barra inferior */}
+                <div style={{
+                    marginTop: "24px",
+                    padding: "16px",
+                    textAlign: "center",
+                    background: "rgba(255,255,255,0.05)",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                }}>
+                    <small style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>
+                        <i className="bi bi-code-slash me-1"></i>
+                        Desarrollado con React + Bootstrap · 
+                        <span style={{ marginLeft: "4px" }}>
+                            <i className="bi bi-heart-fill me-1 text-danger"></i>
+                            para tu gimnasio
+                        </span>
+                    </small>
+                </div>
+            </footer>
         </div>
     );
 };
 
-export default Dashboard; 
+export default Dashboard;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "../database/supabaseconfig";
-import { Table, Button, Modal, Form, Badge, Spinner, Row, Col, Card } from "react-bootstrap";
+import { Table, Button, Modal, Form, Badge, Spinner, Row, Col, Card, Pagination } from "react-bootstrap";
 
 export default function MembresiasClientes() {
   const [membresiasClientes, setMembresiasClientes] = useState([]);
@@ -18,6 +18,12 @@ export default function MembresiasClientes() {
   const [membresiaEditando, setMembresiaEditando] = useState(null);
   const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false);
   const [membresiaEliminar, setMembresiaEliminar] = useState(null);
+
+  // =========================
+  // Paginación
+  // =========================
+  const [paginaActual, setPaginaActual] = useState(1);
+  const itemsPorPagina = 8;
 
   const [searchParams] = useSearchParams();
   const clienteIdParam = searchParams.get("cliente_id");
@@ -52,6 +58,11 @@ export default function MembresiasClientes() {
       setMostrarModal(true);
     }
   }, [clienteIdParam]);
+
+  // Resetear página cuando cambian los filtros
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, filtroEstado]);
 
   async function fetchMembresiasClientes() {
     try {
@@ -98,7 +109,6 @@ export default function MembresiasClientes() {
       data.map(async (item) => {
         const dias = calcularDiasRestantes(item.fecha_vencimiento);
 
-        // Si la membresía está vencida (días < 0), actualizar estado a "Vencida"
         if (
           dias !== null &&
           dias < 0 &&
@@ -112,21 +122,18 @@ export default function MembresiasClientes() {
           item.estado = "Vencida";
         }
 
-        // Si la membresía lleva más de 15 días vencida, inactivar al cliente
         if (
           dias !== null &&
           dias < -15 &&
           item.clientes?.id_cliente &&
           item.estado === "Vencida"
         ) {
-          // Verificar si el cliente tiene alguna membresía activa
           const { data: membresiasActivas } = await supabase
             .from("membresias_clientes")
             .select("id, estado")
             .eq("cliente_id", item.clientes.id_cliente)
             .in("estado", ["Activa", "Pendiente"]);
 
-          // Solo inactivar si no tiene otras membresías activas
           if (!membresiasActivas || membresiasActivas.length === 0) {
             await supabase
               .from("clientes")
@@ -270,26 +277,19 @@ export default function MembresiasClientes() {
     });
   }
 
-  // ==================== CORREGIDO: calcularDiasRestantes ====================
   function calcularDiasRestantes(fechaVencimiento) {
     if (!fechaVencimiento) return null;
 
-    // Obtener fecha actual en formato YYYY-MM-DD sin hora
     const hoy = new Date();
     const hoyStr = hoy.toISOString().split("T")[0];
 
-    // Crear fechas usando solo la parte de la fecha (sin hora) para evitar problemas de zona horaria
     const [anioHoy, mesHoy, diaHoy] = hoyStr.split("-").map(Number);
     const [anioVenc, mesVenc, diaVenc] = fechaVencimiento.split("-").map(Number);
 
-    // Crear fechas en UTC para evitar desfases
     const fechaHoy = Date.UTC(anioHoy, mesHoy - 1, diaHoy);
     const fechaVenc = Date.UTC(anioVenc, mesVenc - 1, diaVenc);
 
-    // Diferencia en milisegundos
     const diffMs = fechaVenc - fechaHoy;
-
-    // Convertir a días (redondear hacia abajo para días completos)
     const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     return diffDias;
@@ -432,6 +432,49 @@ export default function MembresiasClientes() {
     return coincideBusqueda && coincideEstado;
   });
 
+  // =========================
+  // Paginación - Calcular datos
+  // =========================
+  const totalPaginas = Math.ceil(datosFiltrados.length / itemsPorPagina);
+  const indiceInicio = (paginaActual - 1) * itemsPorPagina;
+  const indiceFin = indiceInicio + itemsPorPagina;
+  const datosPaginados = datosFiltrados.slice(indiceInicio, indiceFin);
+
+  // =========================
+  // Generar items de paginación
+  // =========================
+  const generarItemsPaginacion = () => {
+    const items = [];
+    const maxVisible = 5;
+
+    let startPage = Math.max(1, paginaActual - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPaginas, startPage + maxVisible - 1);
+
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+      items.push(<Pagination.First key="first" onClick={() => setPaginaActual(1)} disabled={paginaActual === 1} />);
+      items.push(<Pagination.Ellipsis key="ellipsis-start" disabled />);
+    }
+
+    for (let numero = startPage; numero <= endPage; numero++) {
+      items.push(
+        <Pagination.Item key={numero} active={numero === paginaActual} onClick={() => setPaginaActual(numero)}>
+          {numero}
+        </Pagination.Item>
+      );
+    }
+
+    if (endPage < totalPaginas) {
+      items.push(<Pagination.Ellipsis key="ellipsis-end" disabled />);
+      items.push(<Pagination.Last key="last" onClick={() => setPaginaActual(totalPaginas)} disabled={paginaActual === totalPaginas} />);
+    }
+
+    return items;
+  };
+
   return (
     <div className="container-fluid py-4">
 
@@ -508,7 +551,7 @@ export default function MembresiasClientes() {
         <div className="alert alert-danger">{error}</div>
       ) : esMobile ? (
         <Row>
-          {datosFiltrados.length === 0 ? (
+          {datosPaginados.length === 0 ? (
             <Col xs={12}>
               <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#94a3b8" }}>
                 <div style={{ fontSize: "40px", marginBottom: "12px" }}>📭</div>
@@ -516,7 +559,7 @@ export default function MembresiasClientes() {
               </div>
             </Col>
           ) : (
-            datosFiltrados.map((item) => (
+            datosPaginados.map((item) => (
               <TarjetaMembresia key={item.id} item={item} />
             ))
           )}
@@ -538,14 +581,14 @@ export default function MembresiasClientes() {
             </tr>
           </thead>
           <tbody>
-            {datosFiltrados.length === 0 ? (
+            {datosPaginados.length === 0 ? (
               <tr>
                 <td colSpan="10" className="text-center py-4 text-muted">
                   No hay membresías registradas.
                 </td>
               </tr>
             ) : (
-              datosFiltrados.map((item) => {
+              datosPaginados.map((item) => {
                 const dias = calcularDiasRestantes(item.fecha_vencimiento);
                 return (
                   <tr key={item.id}>
@@ -575,6 +618,28 @@ export default function MembresiasClientes() {
             )}
           </tbody>
         </Table>
+      )}
+
+      {/* Paginación */}
+      {totalPaginas > 1 && (
+        <Row className="mt-4">
+          <Col className="d-flex justify-content-center align-items-center flex-column">
+            <Pagination className="mb-2">
+              <Pagination.Prev
+                onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                disabled={paginaActual === 1}
+              />
+              {generarItemsPaginacion()}
+              <Pagination.Next
+                onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                disabled={paginaActual === totalPaginas}
+              />
+            </Pagination>
+            <small className="text-muted">
+              Mostrando {indiceInicio + 1} - {Math.min(indiceFin, datosFiltrados.length)} de {datosFiltrados.length} membresías
+            </small>
+          </Col>
+        </Row>
       )}
 
       <Modal show={mostrarModal} onHide={() => { setMostrarModal(false); resetFormulario(); }} centered>

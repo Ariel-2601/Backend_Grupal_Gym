@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +11,7 @@ import TablaClientes from "../components/clientes/TablaClientes";
 
 import NotificacionOperacion from "../components/NotificacionOperacion";
 import TarjetaClientes from "../components/clientes/TarjetaClientes";
-import { Container, Row, Col, Button, Alert } from "react-bootstrap";
+import { Container, Row, Col, Button, Alert, Pagination } from "react-bootstrap";
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -34,6 +33,12 @@ const Clientes = () => {
     tipo: "",
   });
 
+  // =========================
+  // Paginación
+  // =========================
+  const [paginaActual, setPaginaActual] = useState(1);
+  const itemsPorPagina = 8;
+
   const cargarClientes = async () => {
     try {
       setCargando(true);
@@ -44,6 +49,7 @@ const Clientes = () => {
       if (error) throw error;
       setClientes(data || []);
       setClientesFiltrados(data || []);
+      setPaginaActual(1);
     } catch (error) {
       console.log("Error al cargar clientes:", error);
       setToast({
@@ -155,12 +161,8 @@ const Clientes = () => {
     doc.save(`cliente_${cliente.id_cliente}.pdf`);
   };
 
-  // =========================
-  // Eliminar cliente + membresías
-  // =========================
   const eliminarCliente = async (id) => {
     try {
-      // 1. Primero eliminar las membresías asociadas al cliente
       const { error: errorMembresias } = await supabase
         .from("membresias_clientes")
         .delete()
@@ -171,7 +173,6 @@ const Clientes = () => {
         throw new Error("Error al eliminar membresías del cliente");
       }
 
-      // 2. Luego eliminar el cliente
       const { error } = await supabase
         .from("clientes")
         .delete()
@@ -179,11 +180,8 @@ const Clientes = () => {
 
       if (error) throw error;
 
-      // El toast se maneja desde el modal (animación de éxito)
-      // Pero por si acaso, actualizamos la lista
       await cargarClientes();
-
-      return true; // Éxito
+      return true;
     } catch (error) {
       console.log(error);
       setToast({
@@ -191,7 +189,7 @@ const Clientes = () => {
         mensaje: "Error al eliminar cliente y sus membresías.",
         tipo: "danger",
       });
-      return false; // Error
+      return false;
     }
   };
 
@@ -204,11 +202,55 @@ const Clientes = () => {
       cliente.correo.toLowerCase().includes(texto.toLowerCase())
     );
     setClientesFiltrados(resultados);
+    setPaginaActual(1);
   };
 
   useEffect(() => {
     cargarClientes();
   }, []);
+
+  // =========================
+  // Paginación - Calcular datos
+  // =========================
+  const totalPaginas = Math.ceil(clientesFiltrados.length / itemsPorPagina);
+  const indiceInicio = (paginaActual - 1) * itemsPorPagina;
+  const indiceFin = indiceInicio + itemsPorPagina;
+  const clientesPaginados = clientesFiltrados.slice(indiceInicio, indiceFin);
+
+  // =========================
+  // Generar items de paginación
+  // =========================
+  const generarItemsPaginacion = () => {
+    const items = [];
+    const maxVisible = 5;
+
+    let startPage = Math.max(1, paginaActual - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPaginas, startPage + maxVisible - 1);
+
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+      items.push(<Pagination.First key="first" onClick={() => setPaginaActual(1)} disabled={paginaActual === 1} />);
+      items.push(<Pagination.Ellipsis key="ellipsis-start" disabled />);
+    }
+
+    for (let numero = startPage; numero <= endPage; numero++) {
+      items.push(
+        <Pagination.Item key={numero} active={numero === paginaActual} onClick={() => setPaginaActual(numero)}>
+          {numero}
+        </Pagination.Item>
+      );
+    }
+
+    if (endPage < totalPaginas) {
+      items.push(<Pagination.Ellipsis key="ellipsis-end" disabled />);
+      items.push(<Pagination.Last key="last" onClick={() => setPaginaActual(totalPaginas)} disabled={paginaActual === totalPaginas} />);
+    }
+
+    return items;
+  };
 
   return (
     <Container className="mt-3">
@@ -233,7 +275,7 @@ const Clientes = () => {
       )}
       <div className="d-block d-lg-none">
         <TarjetaClientes
-          clientes={clientesFiltrados}
+          clientes={clientesPaginados}
           onEditar={(cliente) => {
             setClienteSeleccionado(cliente);
             setMostrarModalEdicion(true);
@@ -246,7 +288,7 @@ const Clientes = () => {
       </div>
       <div className="d-none d-lg-block">
         <TablaClientes
-          clientes={clientesFiltrados}
+          clientes={clientesPaginados}
           cargando={cargando}
           generarPDFCliente={generarPDFCliente}
           onEditar={(cliente) => {
@@ -259,6 +301,29 @@ const Clientes = () => {
           }}
         />
       </div>
+
+      {/* Paginación */}
+      {totalPaginas > 1 && (
+        <Row className="mt-4">
+          <Col className="d-flex justify-content-center align-items-center flex-column">
+            <Pagination className="mb-2">
+              <Pagination.Prev
+                onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
+                disabled={paginaActual === 1}
+              />
+              {generarItemsPaginacion()}
+              <Pagination.Next
+                onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
+                disabled={paginaActual === totalPaginas}
+              />
+            </Pagination>
+            <small className="text-muted">
+              Mostrando {indiceInicio + 1} - {Math.min(indiceFin, clientesFiltrados.length)} de {clientesFiltrados.length} clientes
+            </small>
+          </Col>
+        </Row>
+      )}
+
       <ModalRegistroCliente
         mostrar={mostrarModal}
         setMostrar={setMostrarModal}
