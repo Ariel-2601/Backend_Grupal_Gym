@@ -1363,7 +1363,7 @@ const Dashboard = () => {
 
     const totalAlertas = data.clientesPorVencer.length + data.productosStockBajo.length;
     
-    const POWER_BI_URL = "https://app.powerbi.com/view?r=eyJrIjoiYTMwOGVjY2UtY2E1MC00OGRiLTlmZmMtM2NlZGYzNDlkZDcxIiwidCI6ImU0NzY0NmZlLWRhMjctNDUxOC04NDM2LTVmOGIxNThiYTEyNyIsImMiOjR9";
+    const POWER_BI_URL = "https://app.powerbi.com/view?r=eyJrIjoiNzQzN2E0ZGYtZjk1Ni00ODliLThhZDQtMzBhNjQxMTMzNjFlIiwidCI6ImU0NzY0NmZlLWRhMjctNDUxOC04NDM2LTVmOGIxNThiYTEyNyIsImMiOjR9" ;
     
     const secciones = [
         { id: 1, titulo: "Power BI", icono: "📊" },
